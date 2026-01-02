@@ -1,0 +1,110 @@
+@model Proyecto_alcaldia.Application.ViewModels.DepartamentoViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    ViewData["Title"] = isEdit ? "Editar Departamento" : "Nuevo Departamento";
+    Layout = "_LayoutDashboard";
+    var action = isEdit ? "Edit" : "Create";
+}
+
+<div class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("División Territorial", null),
+        ("Departamentos", Url.Action("Index", "Departamentos")),
+        (isEdit ? "Editar Departamento" : "Nuevo Departamento", null)
+    })
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas @(isEdit ? "fa-edit" : "fa-map-marked-alt") me-2"></i>@(isEdit ? "Editar" : "Nuevo") Departamento
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm(action, "Departamentos", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- Código -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-1"></i>
+                                    @Html.DisplayNameFor(model => model.Codigo)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Codigo, new { 
+                                    @class = "form-control text-uppercase", 
+                                    maxlength = "10",
+                                    placeholder = "Código único",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
+                                <small class="text-muted">Código único del departamento (máx. 10 caracteres)</small>
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-tag me-1"></i>
+                                    @Html.DisplayNameFor(model => model.Nombre)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Nombre, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre del departamento",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Estado Activo -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input", @checked = Model?.Activo ?? true })
+                                    <label class="form-check-label fw-bold">
+                                        @Html.DisplayNameFor(model => model.Activo)
+                                    </label>
+                                </div>
+                            </div>
+
+                            @if (isEdit && Model.CantidadMunicipios > 0)
+                            {
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Este departamento tiene <strong>@Model.CantidadMunicipios</strong> municipio(s) asociado(s)
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Botones -->
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> @(isEdit ? "Guardar Cambios" : "Guardar")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

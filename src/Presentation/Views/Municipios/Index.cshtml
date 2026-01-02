@@ -1,0 +1,182 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.MunicipioViewModel>
+
+@{
+    ViewData["Title"] = "Municipios";
+    Layout = "_LayoutDashboard";
+    var activos = Model.Count(m => m.Activo);
+    var departamentos = Model.Select(m => m.NombreDepartamento).Distinct().Count();
+}
+
+<div class="container-fluid" x-data="{ searchTerm: '' }">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("División Territorial", null),
+        ("Municipios", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <div class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-city"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Gestión de Municipios</h2>
+            <p class="text-muted">Administración de municipios y localidades</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Municipio
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-primary text-white">
+                                <i class="fas fa-city"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Total Municipios</h6>
+                            <h3 class="stat-value">@Model.Count()</h3>
+                            <small class="stat-description text-primary">Registrados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-success text-white">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Activos</h6>
+                            <h3 class="stat-value">@activos</h3>
+                            <small class="stat-description text-success">En operación</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-info text-white">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Departamentos</h6>
+                            <h3 class="stat-value">@departamentos</h3>
+                            <small class="stat-description text-info">Asociados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card content-card">
+        <div class="card-header content-card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-city me-2"></i>
+                Lista de Municipios
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <input type="text" 
+                       class="form-control" 
+                       x-model="searchTerm" 
+                       placeholder="Buscar por código, nombre o departamento...">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Departamento</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var municipio in Model)
+                        {
+                            var departamentosText = string.Join(", ", municipio.Departamentos);
+                            var cantidadDepartamentos = municipio.Departamentos.Count;
+                            <tr x-show="searchTerm === '' || 
+                                       '@municipio.Codigo'.includes(searchTerm.toUpperCase()) || 
+                                       '@municipio.Nombre?.ToLower()'.includes(searchTerm.toLowerCase()) ||
+                                       '@departamentosText.ToLower()'.includes(searchTerm.toLowerCase())">
+                                <td><span class="badge bg-secondary">@municipio.Codigo</span></td>
+                                <td>@municipio.Nombre</td>
+                                <td>
+                                    @if (cantidadDepartamentos > 0)
+                                    {
+                                        <span class="badge bg-primary" 
+                                              style="font-size: 0.9rem; padding: 0.5rem 0.75rem;"
+                                              title="@departamentosText">
+                                            <i class="fas fa-map-marked-alt me-1"></i>
+                                            (@cantidadDepartamentos) @(cantidadDepartamentos == 1 ? "Departamento" : "Departamentos")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-map-marked-alt me-1"></i>
+                                            Sin departamentos
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (municipio.Activo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@municipio.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn-action btn-delete" 
+                                                title="Eliminar"
+                                                onclick="confirmDelete('@Url.Action("Delete", new { id = municipio.Id })', '@municipio.Nombre', '@Url.Action("Index")')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+}

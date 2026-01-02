@@ -1,0 +1,223 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.AlcaldeViewModel>
+
+@{
+    ViewData["Title"] = "Gestión de Alcaldes";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid" x-data="{ searchTerm: '' }">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Configuración", null),
+        ("Alcaldes", null)
+    })
+
+    <div class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-user-tie"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Gestión de Alcaldes</h2>
+            <p class="text-muted">Administración de alcaldes y periodos de gobierno</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Alcalde
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-primary text-white">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Total Alcaldes</h6>
+                            <h3 class="stat-value">@Model.Count()</h3>
+                            <small class="stat-description text-primary">Registrados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-success text-white">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Alcaldes Activos</h6>
+                            <h3 class="stat-value">@Model.Count(a => a.Activo)</h3>
+                            <small class="stat-description text-success">En funciones</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-warning text-white">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">En Periodo</h6>
+                            <h3 class="stat-value">@Model.Count(a => a.PeriodoInicio <= DateTime.Now && (a.PeriodoFin == null || a.PeriodoFin >= DateTime.Now))</h3>
+                            <small class="stat-description text-warning">Vigentes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-info text-white">
+                                <i class="fas fa-landmark"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Partidos Políticos</h6>
+                            <h3 class="stat-value">@Model.Select(a => a.PartidoPolitico).Distinct().Count()</h3>
+                            <small class="stat-description text-info">Representados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card content-card">
+        <div class="card-header content-card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-user-tie me-2"></i>
+                Lista de Alcaldes
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <input type="text" 
+                       class="form-control" 
+                       x-model="searchTerm" 
+                       placeholder="Buscar por nombre, documento o partido político...">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Alcalde</th>
+                            <th>Documento</th>
+                            <th>Periodo</th>
+                            <th>Partido Político</th>
+                            <th>Alcaldía</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var alcalde in Model)
+                        {
+                            <tr x-show="searchTerm === '' || 
+                                       '@alcalde.NombreCompleto?.ToLower()'.includes(searchTerm.toLowerCase()) || 
+                                       '@alcalde.NumeroDocumento'.includes(searchTerm) ||
+                                       '@alcalde.PartidoPolitico?.ToLower()'.includes(searchTerm.toLowerCase())">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar user-avatar-primary me-2">
+                                            @alcalde.NombreCompleto?.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">@alcalde.NombreCompleto</div>
+                                            @if (!string.IsNullOrEmpty(alcalde.CorreoElectronico))
+                                            {
+                                                <small class="text-muted">@alcalde.CorreoElectronico</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>@alcalde.TipoDocumento</div>
+                                    <small class="text-muted">@alcalde.NumeroDocumento</small>
+                                </td>
+                                <td>
+                                    @if (alcalde.PeriodoInicio.HasValue)
+                                    {
+                                        <div>@alcalde.PeriodoInicio.Value.ToString("dd/MM/yyyy")</div>
+                                        @if (alcalde.PeriodoFin.HasValue)
+                                        {
+                                            <small class="text-muted">hasta @alcalde.PeriodoFin.Value.ToString("dd/MM/yyyy")</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sin período</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(alcalde.PartidoPolitico))
+                                    {
+                                        <span class="badge badge-gradient info">@alcalde.PartidoPolitico</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(alcalde.NitAlcaldia))
+                                    {
+                                        <div>@alcalde.MunicipioAlcaldia</div>
+                                        <small class="text-muted">NIT: @alcalde.NitAlcaldia</small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (alcalde.Activo)
+                                    {
+                                        <span class="badge bg-success">ACTIVO</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">INACTIVO</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@alcalde.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn-action btn-delete" 
+                                                title="Eliminar"
+                                                onclick="confirmDelete('@Url.Action("Delete", new { id = alcalde.Id })', '@alcalde.NombreCompleto', '@Url.Action("Index")')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+}

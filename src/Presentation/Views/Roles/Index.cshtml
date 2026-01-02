@@ -1,0 +1,275 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.RolViewModel>
+
+@{
+    ViewData["Title"] = "Roles de Usuario";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Administración", null),
+        ("Roles de Usuario", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <div class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Roles de Usuario</h2>
+            <p class="text-muted">Configuración de roles y permisos del sistema</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Crear Rol
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-user-tag fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Roles</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TotalRoles</h3>
+                            <small class="text-primary">Roles activos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-key fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Permisos Configurados</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.PermisosConfigurados</h3>
+                            <small class="text-success">Módulos con acceso</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Usuarios Asignados</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.UsuariosAsignados</h3>
+                            <small class="text-warning">Total de usuarios</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-cog fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Roles Personalizados</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.RolesPersonalizados</h3>
+                            <small class="text-info">Configuraciones custom</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Búsqueda -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" id="searchInput" 
+                       placeholder="Buscar rol...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Roles -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de Roles</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="rolesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre del Rol</th>
+                            <th>Descripción</th>
+                            <th>Usuarios Asignados</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rol in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="role-icon me-2">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <span class="fw-bold">@rol.Nombre</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(rol.Descripcion))
+                                    {
+                                        <span>@rol.Descripcion</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">Sin descripción</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary rounded-pill">3 usuarios</span>
+                                </td>
+                                <td>
+                                    @if (rol.Activo)
+                                    {
+                                        <span class="badge bg-success">ACTIVO</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">INACTIVO</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@rol.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn-action btn-delete" 
+                                                onclick="confirmDelete('@Url.Action("Delete", "Roles", new { id = rol.Id })', '@rol.Nombre', '@Url.Action("Index", "Roles")')" 
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Permisos por Módulo -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Permisos por Módulo</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="permission-card">
+                        <h6 class="fw-bold mb-2">Plan de Desarrollo Municipal</h6>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-light text-dark">Ver</span>
+                            <span class="badge bg-light text-dark">Crear</span>
+                            <span class="badge bg-light text-dark">Editar</span>
+                            <span class="badge bg-light text-dark">Eliminar</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="permission-card">
+                        <h6 class="fw-bold mb-2">Hacienda y Presupuesto</h6>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-light text-dark">Ver</span>
+                            <span class="badge bg-light text-dark">Crear</span>
+                            <span class="badge bg-light text-dark">Editar</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="permission-card">
+                        <h6 class="fw-bold mb-2">Impuestos y Recaudos</h6>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-light text-dark">Ver</span>
+                            <span class="badge bg-light text-dark">Crear</span>
+                            <span class="badge bg-light text-dark">Editar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Búsqueda en tiempo real
+        $('#searchInput').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $('#rolesTable tbody tr').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+        });
+    </script>
+    <style>
+        .role-icon {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .permission-card {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .card {
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+}

@@ -1,0 +1,193 @@
+@model Proyecto_alcaldia.Application.ViewModels.AlcaldiaViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+    ViewData["Title"] = isEdit ? "Editar Alcaldía" : "Nueva Alcaldía";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Configuración", null),
+        ("Alcaldías", Url.Action("Index", "Alcaldias")),
+        (isEdit ? "Editar Alcaldía" : "Nueva Alcaldía", null)
+    })
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-building me-2"></i>@(isEdit ? "Editar" : "Nueva") Alcaldía
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Errores de Validación</h5>
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    
+                    <form asp-action="@action" asp-controller="Alcaldias" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- NIT -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Nit)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Nit, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Ingrese el NIT",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Nit, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Teléfono -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-phone me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Telefono)
+                                </label>
+                                @Html.TextBoxFor(model => model.Telefono, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Teléfono de contacto",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Telefono, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Municipio -->
+                            @{
+                                ViewData["fieldName"] = "MunicipioId";
+                                ViewData["label"] = "Municipio";
+                                ViewData["options"] = ViewBag.Municipios;
+                                ViewData["selectedValue"] = Model?.MunicipioId.ToString();
+                                ViewData["placeholder"] = "Seleccione un municipio";
+                                ViewData["required"] = "True";
+                                ViewData["icon"] = "fa-city";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Dirección -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Direccion)
+                                </label>
+                                @Html.TextBoxFor(model => model.Direccion, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Dirección de la alcaldía",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Direccion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Correo Institucional -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    @Html.DisplayNameFor(model => model.CorreoInstitucional)
+                                </label>
+                                @Html.TextBoxFor(model => model.CorreoInstitucional, new { 
+                                    @class = "form-control", 
+                                    type = "email",
+                                    placeholder = "correo@alcaldia.gov.co",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.CorreoInstitucional, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Logo -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-image me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Logo)
+                                </label>
+                                <input type="file" 
+                                       id="LogoFile"
+                                       name="LogoFile" 
+                                       accept="image/*" 
+                                       class="form-control" 
+                                       onchange="previewLogo(this)" />
+                                @if (isEdit && !string.IsNullOrEmpty(Model?.Logo))
+                                {
+                                    <div class="mt-3" id="logoPreviewContainer">
+                                        <p class="mb-2 text-muted">Logo actual:</p>
+                                        <img src="@Model.Logo" alt="Logo actual" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" id="logoPreview">
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mt-3 d-none" id="logoPreviewContainer">
+                                        <p class="mb-2 text-muted">Vista previa:</p>
+                                        <img src="" alt="Vista previa" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" id="logoPreview">
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Activo -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input", @checked = Model?.Activo ?? true })
+                                    <label class="form-check-label" for="Activo">
+                                        @Html.DisplayNameFor(model => model.Activo)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>@(isEdit ? "Guardar Cambios" : "Crear Alcaldía")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function previewLogo(input) {
+            const preview = document.getElementById('logoPreview');
+            const container = document.getElementById('logoPreviewContainer');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    container.classList.remove('d-none');
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

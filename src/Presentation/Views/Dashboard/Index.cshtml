@@ -1,0 +1,143 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">Dashboard</h2>
+            <p class="text-muted">Bienvenido al Sistema de Gestión Municipal</p>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Usuarios</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TotalUsuarios</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-building fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Alcaldías</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TotalAlcaldias</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-project-diagram fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Proyectos</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TotalProyectos</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-tasks fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Actividades</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TotalActividades</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Adicional -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Actividad Reciente</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Próximamente: Gráficos y estadísticas detalladas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Accesos Rápidos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>Nuevo Proyecto
+                        </a>
+                        <a href="#" class="btn btn-outline-success">
+                            <i class="fas fa-file-alt me-2"></i>Generar Reporte
+                        </a>
+                        <a href="#" class="btn btn-outline-info">
+                            <i class="fas fa-user-plus me-2"></i>Agregar Usuario
+                        </a>
+                        <a href="#" class="btn btn-outline-warning">
+                            <i class="fas fa-cog me-2"></i>Configuración
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .btn {
+        border-radius: 8px;
+    }
+</style>

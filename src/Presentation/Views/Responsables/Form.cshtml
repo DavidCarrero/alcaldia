@@ -1,0 +1,201 @@
+@model Proyecto_alcaldia.Application.ViewModels.ResponsableViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+    ViewData["Title"] = isEdit ? "Editar Responsable" : "Nuevo Responsable";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Estructura Organizacional", null),
+        ("Responsables", Url.Action("Index", "Responsables")),
+        (isEdit ? "Editar Responsable" : "Nuevo Responsable", null)
+    })
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>@(isEdit ? "Editar" : "Nuevo") Responsable
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="@action" asp-controller="Responsables" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- Nombre Completo -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-2"></i>
+                                    @Html.DisplayNameFor(model => model.NombreCompleto)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.NombreCompleto, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre completo del responsable",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.NombreCompleto, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Tipo de Documento -->
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-id-card me-2"></i>
+                                    @Html.DisplayNameFor(model => model.TipoDocumento)
+                                </label>
+                                @Html.DropDownListFor(model => model.TipoDocumento, 
+                                    new SelectList(new[] { "CC", "CE", "TI", "PP" }), 
+                                    "Seleccione...", 
+                                    new { @class = "form-select" })
+                                @Html.ValidationMessageFor(model => model.TipoDocumento, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Número de Identificación -->
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-2"></i>
+                                    @Html.DisplayNameFor(model => model.NumeroIdentificacion)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.NumeroIdentificacion, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Número",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.NumeroIdentificacion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Cargo -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-briefcase me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Cargo)
+                                </label>
+                                @Html.TextBoxFor(model => model.Cargo, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Cargo del responsable",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Cargo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Tipo de Responsable -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user-tag me-2"></i>
+                                    @Html.DisplayNameFor(model => model.TipoResponsable)
+                                </label>
+                                @Html.DropDownListFor(model => model.TipoResponsable, 
+                                    new SelectList(new[] { "Jefe", "Coord", "Aux" }), 
+                                    "Seleccione...", 
+                                    new { @class = "form-select" })
+                                @Html.ValidationMessageFor(model => model.TipoResponsable, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Teléfono -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-phone me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Telefono)
+                                </label>
+                                @Html.TextBoxFor(model => model.Telefono, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Teléfono",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Telefono, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Email)
+                                </label>
+                                @Html.TextBoxFor(model => model.Email, new { 
+                                    @class = "form-control", 
+                                    type = "email",
+                                    placeholder = "correo@ejemplo.com",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Alcaldía -->
+                            @{
+                                ViewData["fieldName"] = "AlcaldiaId";
+                                ViewData["label"] = "Alcaldía";
+                                ViewData["searchUrl"] = "/Alcaldias/Search";
+                                ViewData["displayField"] = "nit";
+                                ViewData["secondaryField"] = "municipio";
+                                ViewData["icon"] = "fa-landmark";
+                                ViewData["placeholder"] = "Escribe y presiona Enter para buscar...";
+                                ViewData["required"] = "True";
+                                
+                                if (isEdit && Model?.AlcaldiaId > 0)
+                                {
+                                    ViewData["initialValue"] = Model.AlcaldiaId.ToString();
+                                    ViewData["initialDisplay"] = Model.NitAlcaldia;
+                                }
+                            }
+                            @await Html.PartialAsync("_SearchableDropdown")
+
+                            <!-- Secretaría (Opcional) -->
+                            @{
+                                ViewData["fieldName"] = "SecretariaId";
+                                ViewData["label"] = "Secretaría (Opcional)";
+                                ViewData["searchUrl"] = "/Secretarias/Search";
+                                ViewData["displayField"] = "codigo";
+                                ViewData["secondaryField"] = "nombre";
+                                ViewData["icon"] = "fa-building";
+                                ViewData["placeholder"] = "Escribe y presiona Enter para buscar...";
+                                ViewData["required"] = "False";
+                                
+                                if (isEdit && Model?.SecretariaId > 0)
+                                {
+                                    ViewData["initialValue"] = Model.SecretariaId.ToString();
+                                    ViewData["initialDisplay"] = Model.CodigoSecretaria;
+                                }
+                            }
+                            @await Html.PartialAsync("_SearchableDropdown")
+
+                            <!-- Estado Activo -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input", @checked = Model?.Activo ?? true })
+                                    <label class="form-check-label fw-bold">
+                                        @Html.DisplayNameFor(model => model.Activo)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>@(isEdit ? "Guardar Cambios" : "Crear Responsable")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

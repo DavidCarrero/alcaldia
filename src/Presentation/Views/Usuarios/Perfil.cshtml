@@ -1,0 +1,441 @@
+@model Proyecto_alcaldia.Application.DTOs.UsuarioDto
+
+@{
+    ViewData["Title"] = "Mi Perfil";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid">
+    <h1>Perfil de Usuario</h1>
+    <p>Nombre: @Model.NombreCompleto</p>
+    <p>Email: @Model.CorreoElectronico</p>
+    <p>Usuario: @Model.NombreUsuario</p>
+</div>
+
+<div class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Mi Cuenta", null),
+        ("Perfil", null)
+    })
+
+    <!-- Encabezado -->
+    <div class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Perfil de Usuario</h2>
+            <p class="text-muted">Información personal y configuración de cuenta</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Columna Izquierda - Información del Usuario -->
+        <div class="col-lg-4">
+            <!-- Tarjeta de Perfil -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center p-4">
+                    <!-- Avatar -->
+                    <div class="avatar-wrapper mb-3">
+                        <div class="avatar-lg mx-auto" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <span class="avatar-initials">@iniciales</span>
+                        </div>
+                    </div>
+
+                    <!-- Nombre y Email -->
+                    <h4 class="mb-1 fw-bold">@Model.NombreCompleto</h4>
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-envelope me-1"></i>@Model.CorreoElectronico
+                    </p>
+
+                    <!-- Roles -->
+                    <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
+                        @foreach (var rol in Model.Roles)
+                        {
+                            <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                                <i class="fas fa-shield-alt me-1"></i>@rol
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Botón Cambiar Foto (futuro) -->
+                    <button type="button" class="btn btn-outline-primary btn-sm" disabled>
+                        <i class="fas fa-camera me-2"></i>Cambiar Foto
+                    </button>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Información de Cuenta</h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="info-icon">
+                                <i class="fas fa-user text-muted"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <small class="text-muted d-block">Usuario</small>
+                                <span class="fw-semibold">@Model.NombreUsuario</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-item mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="info-icon">
+                                <i class="fas fa-calendar text-muted"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <small class="text-muted d-block">Miembro desde</small>
+                                <span class="fw-semibold">@Model.FechaCreacion.ToString("MMMM yyyy")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.UltimoAcceso.HasValue)
+                    {
+                        <div class="info-item mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon">
+                                    <i class="fas fa-clock text-muted"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">Último acceso</small>
+                                    <span class="fw-semibold">@Model.UltimoAcceso.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="info-item">
+                        <div class="d-flex align-items-center">
+                            <div class="info-icon">
+                                @if (Model.Activo)
+                                {
+                                    <i class="fas fa-check-circle text-success"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-times-circle text-danger"></i>
+                                }
+                            </div>
+                            <div class="flex-grow-1">
+                                <small class="text-muted d-block">Estado</small>
+                                <span class="fw-semibold">
+                                    @if (Model.Activo)
+                                    {
+                                        <span class="text-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">Inactivo</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha - Formularios -->
+        <div class="col-lg-8">
+            <!-- Información Personal -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0"><i class="fas fa-user-edit me-2 text-primary"></i>Información Personal</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="ActualizarPerfil" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-user me-1"></i>Nombre Completo
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" asp-for="NombreCompleto" class="form-control" required />
+                                <span asp-validation-for="NombreCompleto" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-at me-1"></i>Nombre de Usuario
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" asp-for="NombreUsuario" class="form-control" required />
+                                <span asp-validation-for="NombreUsuario" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-envelope me-1"></i>Correo Electrónico
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" asp-for="CorreoElectronico" class="form-control" required />
+                                <span asp-validation-for="CorreoElectronico" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Cambiar Contraseña -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0"><i class="fas fa-lock me-2 text-primary"></i>Cambiar Contraseña</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CambiarPassword" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-key me-1"></i>Contraseña Actual
+                                </label>
+                                <input type="password" name="passwordActual" class="form-control" required />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-key me-1"></i>Nueva Contraseña
+                                </label>
+                                <input type="password" name="nuevaPassword" class="form-control" required minlength="6" />
+                                <small class="text-muted">Mínimo 6 caracteres</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-key me-1"></i>Confirmar Nueva Contraseña
+                                </label>
+                                <input type="password" name="confirmarPassword" class="form-control" required />
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-shield-alt me-2"></i>Cambiar Contraseña
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tema de Color -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0"><i class="fas fa-palette me-2 text-primary"></i>Tema de Color</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-3">Personaliza el color principal de la aplicación</p>
+                    
+                    <div class="row g-3">
+                        @{
+                            var colores = new Dictionary<string, string> {
+                                { "blue", "Azul" },
+                                { "green", "Verde" },
+                                { "purple", "Púrpura" },
+                                { "orange", "Naranja" },
+                                { "red", "Rojo" },
+                                { "teal", "Turquesa" },
+                                { "yellow", "Amarillo" }
+                            };
+
+                            var temaActual = Model.TemaColor ?? "blue";
+                        }
+
+                        @foreach (var color in colores)
+                        {
+                            <div class="col-6 col-md-4">
+                                <div class="color-option @(temaActual == color.Key ? "active" : "")" 
+                                     data-color="@color.Key" 
+                                     onclick="cambiarTema('@color.Key')">
+                                    <div class="color-circle color-@color.Key"></div>
+                                    <span class="color-name">@color.Value</span>
+                                    @if (temaActual == color.Key)
+                                    {
+                                        <i class="fas fa-check-circle color-check"></i>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+<style>
+    .avatar-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .avatar-lg {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: 4px solid white;
+    }
+
+    .avatar-initials {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .info-item {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+
+    .color-option {
+        padding: 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        position: relative;
+    }
+
+    .color-option:hover {
+        border-color: #cbd5e0;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .color-option.active {
+        border-color: #667eea;
+        background: #f7fafc;
+    }
+
+    .color-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .color-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .color-green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .color-purple { background: linear-gradient(135deg, #a770ef 0%, #cf8bf3 100%); }
+    .color-orange { background: linear-gradient(135deg, #fa8231 0%, #ffa463 100%); }
+    .color-red { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .color-teal { background: linear-gradient(135deg, #13547a 0%, #80d0c7 100%); }
+    .color-yellow { background: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%); }
+
+    .color-name {
+        display: block;
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: #4a5568;
+    }
+
+    .color-check {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        color: #667eea;
+        font-size: 1.2rem;
+    }
+
+    .badge.bg-primary-subtle {
+        background-color: rgba(102, 126, 234, 0.1) !important;
+        color: #667eea !important;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+</style>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function cambiarTema(color) {
+            fetch('@Url.Action("CambiarTemaColor", "Usuarios")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `temaColor=${color}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar UI
+                    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+                    document.querySelector(`[data-color="${color}"]`).classList.add('active');
+                    
+                    // Recargar para aplicar el tema
+                    location.reload();
+                } else {
+                    alert('Error al cambiar tema: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al cambiar tema');
+            });
+        }
+    </script>
+}

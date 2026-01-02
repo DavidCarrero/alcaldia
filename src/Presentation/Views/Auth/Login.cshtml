@@ -1,0 +1,186 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sistema de Alcaldía</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            width: 100%;
+            max-width: 450px;
+            padding: 0;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .login-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 28px;
+        }
+
+        .login-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .login-body {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group-text {
+            background: #f8f9fa;
+            border-right: none;
+            color: #667eea;
+        }
+
+        .form-control {
+            border-left: none;
+            padding: 12px;
+            font-size: 15px;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: none;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <i class="fas fa-city fa-3x mb-3"></i>
+            <h2>Sistema de Alcaldía</h2>
+            <p>Gestión Municipal Integrada</p>
+        </div>
+        <div class="login-body">
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @ViewBag.Error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form method="post" asp-action="Login" asp-controller="Auth">
+                @Html.AntiForgeryToken()
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user me-2"></i>Usuario o Correo
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control" 
+                               name="username" 
+                               placeholder="Ingrese su usuario o correo"
+                               required 
+                               autofocus>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock me-2"></i>Contraseña
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" 
+                               class="form-control" 
+                               name="password" 
+                               placeholder="Ingrese su contraseña"
+                               required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                </button>
+
+                <div class="footer-text">
+                    <p class="mb-0">© 2025 Sistema de Alcaldía</p>
+                    <small>Versión 1.0</small>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

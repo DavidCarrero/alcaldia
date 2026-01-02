@@ -1,0 +1,146 @@
+@*
+    Dropdown con Búsqueda
+    Parámetros:
+    - fieldName: Nombre del campo
+    - label: Etiqueta
+    - options: Lista de opciones (IEnumerable con Id, Text)
+    - selectedValue: Valor seleccionado
+    - placeholder: Texto placeholder
+    - required: Si es requerido
+    - icon: Icono FontAwesome
+*@
+
+@{
+    var fieldName = ViewData["fieldName"]?.ToString() ?? "FieldId";
+    var label = ViewData["label"]?.ToString() ?? "Seleccionar";
+    var options = ViewData["options"] as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var selectedValue = ViewData["selectedValue"]?.ToString() ?? "";
+    var placeholder = ViewData["placeholder"]?.ToString() ?? "Buscar y seleccionar";
+    var required = ViewData["required"]?.ToString() == "True";
+    var icon = ViewData["icon"]?.ToString() ?? "fa-list";
+    
+    var optionsList = options.ToList();
+    var selectedOption = optionsList.FirstOrDefault(o => o.Id?.ToString() == selectedValue);
+    var selectedTextValue = selectedOption?.Text?.ToString() ?? "";
+    
+    var componentId = $"dd{Guid.NewGuid():N}";
+}
+
+<script>
+    window['@componentId'] = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(optionsList.Select(o => new { 
+        id = o.Id?.ToString() ?? "", 
+        text = o.Text?.ToString() ?? "" 
+    }).ToList()));
+</script>
+
+<div class="col-12">
+    <label class="form-label fw-bold">
+        <i class="fas @icon me-1"></i>
+        @label
+        @if (required)
+        {
+            <span class="text-danger">*</span>
+        }
+    </label>
+    
+    <div x-data="{
+        searchTerm: '',
+        showDropdown: false,
+        selectedValue: '@selectedValue',
+        selectedText: '@Html.Raw(selectedTextValue.Replace("'", "\\'"))',
+        options: window['@componentId'],
+        
+        get filteredOptions() {
+            if (!this.searchTerm) return this.options;
+            const term = this.searchTerm.toLowerCase();
+            return this.options.filter(opt => opt.text.toLowerCase().includes(term));
+        },
+        
+        selectOption(option) {
+            this.selectedValue = option.id;
+            this.selectedText = option.text;
+            this.showDropdown = false;
+            this.searchTerm = '';
+            // Actualizar el hidden input directamente
+            document.getElementById('@fieldName').value = option.id;
+        },
+        
+        clearSelection() {
+            this.selectedValue = '';
+            this.selectedText = '';
+            this.searchTerm = '';
+            // Limpiar el hidden input directamente
+            document.getElementById('@fieldName').value = '';
+        }
+    }" 
+    @@click.away="showDropdown = false"
+    class="dropdown w-100">
+        <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" 
+                type="button" 
+                @@click="showDropdown = !showDropdown"
+                :class="{ 'btn-outline-primary': selectedValue }">
+            <span>
+                <i class="fas @icon me-2"></i>
+                <span x-text="selectedText || '@placeholder'"></span>
+            </span>
+            <i class="fas fa-chevron-down ms-2"></i>
+        </button>
+        
+        <div class="dropdown-menu w-100 shadow-lg border" 
+             :class="{ 'show': showDropdown }"
+             style="max-height: 400px; overflow-y: auto;">
+            
+            <!-- Campo de búsqueda -->
+            <div class="px-3 py-2 border-bottom sticky-top bg-white">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control border-start-0 ps-0" 
+                           x-model="searchTerm"
+                           @@keydown.escape="showDropdown = false"
+                           placeholder="Buscar..."
+                           autocomplete="off" />
+                </div>
+            </div>
+            
+            <!-- Opciones -->
+            <template x-for="option in filteredOptions" :key="option.id">
+                <a href="#" 
+                   class="dropdown-item d-flex align-items-center py-2"
+                   @@click.prevent="selectOption(option)">
+                    <i class="fas @icon me-2 text-primary"></i>
+                    <span class="flex-grow-1" x-text="option.text"></span>
+                    <i x-show="selectedValue == option.id" class="fas fa-check text-success ms-2"></i>
+                </a>
+            </template>
+            
+            <div x-show="filteredOptions.length === 0" 
+                 class="dropdown-item-text text-muted text-center py-3">
+                <i class="fas fa-search me-2"></i>No se encontraron resultados
+            </div>
+            
+            <!-- Limpiar selección -->
+            <div x-show="selectedValue" class="border-top">
+                <a href="#" 
+                   class="dropdown-item text-danger text-center py-2"
+                   @@click.prevent="clearSelection()">
+                    <i class="fas fa-times me-2"></i>Limpiar selección
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden input -->
+    <input type="hidden" 
+           name="@fieldName" 
+           id="@fieldName" 
+           value="@selectedValue"
+           data-val="@(required ? "true" : "false")"
+           data-val-required="@(required ? $"{label} es requerido" : "")" />
+    
+    <span class="field-validation-valid text-danger small mt-1 d-block" 
+          data-valmsg-for="@fieldName" 
+          data-valmsg-replace="true"></span>
+</div>

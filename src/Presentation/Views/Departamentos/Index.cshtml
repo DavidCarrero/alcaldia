@@ -1,0 +1,164 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.DepartamentoViewModel>
+
+@{
+    ViewData["Title"] = "Departamentos";
+    Layout = "_LayoutDashboard";
+    var activos = Model.Count(d => d.Activo);
+    var totalMunicipios = Model.Sum(d => d.CantidadMunicipios);
+}
+
+<div class="container-fluid" x-data="{ searchTerm: '' }">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("División Territorial", null),
+        ("Departamentos", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <div class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-map-marked-alt"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Gestión de Departamentos</h2>
+            <p class="text-muted">Administración de departamentos y divisiones territoriales</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Departamento
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-primary text-white">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Total Departamentos</h6>
+                            <h3 class="stat-value">@Model.Count()</h3>
+                            <small class="stat-description text-primary">Registrados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-success text-white">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Activos</h6>
+                            <h3 class="stat-value">@activos</h3>
+                            <small class="stat-description text-success">En operación</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-info text-white">
+                                <i class="fas fa-city"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Total Municipios</h6>
+                            <h3 class="stat-value">@totalMunicipios</h3>
+                            <small class="stat-description text-info">Asociados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card content-card">
+        <div class="card-header content-card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-map me-2"></i>
+                Lista de Departamentos
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <input type="text" 
+                       class="form-control" 
+                       x-model="searchTerm" 
+                       placeholder="Buscar por código o nombre...">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Municipios</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var departamento in Model)
+                        {
+                            <tr x-show="searchTerm === '' || 
+                                       '@departamento.Codigo'.includes(searchTerm.toUpperCase()) || 
+                                       '@departamento.Nombre?.ToLower()'.includes(searchTerm.toLowerCase())">
+                                <td><span class="badge bg-secondary">@departamento.Codigo</span></td>
+                                <td>@departamento.Nombre</td>
+                                <td>
+                                    <span class="badge bg-info">@departamento.CantidadMunicipios</span>
+                                </td>
+                                <td>
+                                    @if (departamento.Activo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@departamento.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn-action btn-delete" 
+                                                title="Eliminar"
+                                                onclick="confirmDelete('@Url.Action("Delete", new { id = departamento.Id })', '@departamento.Nombre', '@Url.Action("Index")')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+}

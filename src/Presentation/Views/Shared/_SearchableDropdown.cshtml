@@ -1,0 +1,236 @@
+@*
+    Componente Dropdown con Búsqueda - Alpine.js
+    Parámetros:
+    - fieldName: Nombre del campo (para name e id del hidden input)
+    - label: Etiqueta del campo
+    - searchUrl: URL del endpoint de búsqueda
+    - displayField: Campo a mostrar (ej: "nombre", "municipio")
+    - secondaryField: Campo secundario opcional (ej: "nit", "codigo")
+    - icon: Icono FontAwesome (ej: "fa-landmark")
+    - placeholder: Texto del placeholder
+    - required: Si el campo es requerido
+    - initialValue: Valor inicial del campo (para modo edición)
+    - initialDisplay: Texto a mostrar inicialmente
+*@
+
+@{
+    var fieldName = ViewData["fieldName"]?.ToString() ?? "FieldId";
+    var label = ViewData["label"]?.ToString() ?? "Seleccionar";
+    var searchUrl = ViewData["searchUrl"]?.ToString() ?? "/Search";
+    var displayField = ViewData["displayField"]?.ToString() ?? "nombre";
+    var secondaryField = ViewData["secondaryField"]?.ToString();
+    var icon = ViewData["icon"]?.ToString() ?? "fa-search";
+    var placeholder = ViewData["placeholder"]?.ToString() ?? "Escribe y presiona Enter para buscar...";
+    var required = ViewData["required"]?.ToString() == "True";
+    var initialValue = ViewData["initialValue"]?.ToString();
+    var initialDisplay = ViewData["initialDisplay"]?.ToString();
+    var initialDisplaySecondary = ViewData["initialDisplaySecondary"]?.ToString();
+}
+
+<div class="col-12" 
+     x-data="{
+        searchTerm: '',
+        results: [],
+        showResults: false,
+        isLoading: false,
+        selectedValue: '@initialValue' || '',
+        selectedItem: @(string.IsNullOrEmpty(initialValue) ? "null" : !string.IsNullOrEmpty(secondaryField) ? $"{{ id: {initialValue}, '{displayField}': '{initialDisplay}', '{secondaryField}': '{initialDisplaySecondary}' }}" : $"{{ id: {initialValue}, '{displayField}': '{initialDisplay}' }}"),
+        placeholder: '@placeholder',
+        
+        async init() {
+            document.addEventListener('click', (e) => {
+                if (!this.$el.contains(e.target)) {
+                    this.showResults = false;
+                }
+            });
+            // Cargar datos iniciales
+            await this.loadInitial();
+        },
+        
+        async loadInitial() {
+            if (this.isLoading) return;
+            this.isLoading = true;
+            try {
+                const response = await fetch('@searchUrl?limit=20');
+                if (response.ok) {
+                    this.results = await response.json();
+                    // Si solo hay una opción y no hay valor seleccionado, seleccionarla automáticamente
+                    if (this.results.length === 1 && !this.selectedValue) {
+                        this.selectItem(this.results[0]);
+                    }
+                } 
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        async toggleDropdown() {
+            if (!this.showResults) {
+                if (this.results.length === 0) {
+                    await this.loadInitial();
+                }
+                this.showResults = true;
+                this.$nextTick(() => {
+                    if (this.$refs.searchInput) {
+                        this.$refs.searchInput.focus();
+                    }
+                });
+            } else {
+                this.showResults = false;
+                this.searchTerm = '';
+            }
+        },
+        
+        async search() {
+            if (!this.searchTerm || this.searchTerm.trim().length < 1) {
+                await this.loadInitial();
+                this.showResults = true;
+                return;
+            }
+
+            this.isLoading = true;
+            try {
+                const url = `@searchUrl?term=${encodeURIComponent(this.searchTerm)}&limit=20&fields=${encodeURIComponent('codigo,nombre')}`;
+                const response = await fetch(url);
+                if (response.ok) {
+                    this.results = await response.json();
+                    this.showResults = true;
+                }
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        
+        selectItem(item) {
+            this.selectedItem = item;
+            this.selectedValue = item.id;
+            this.searchTerm = '';
+            this.showResults = false;
+        },
+        
+        clearSelection() {
+            this.selectedItem = null;
+            this.selectedValue = '';
+            this.searchTerm = '';
+            this.results = [];
+            this.showResults = false;
+        },
+        
+        getDisplayText() {
+            if (!this.selectedItem) return '';
+            @if (!string.IsNullOrEmpty(secondaryField))
+            {
+                @:let text = this.selectedItem['@secondaryField'] || '';
+                @:if (this.selectedItem['@displayField']) {
+                @:    text += ' - ' + this.selectedItem['@displayField'];
+                @:}
+                @:return text;
+            }
+            else
+            {
+                @:return this.selectedItem['@displayField'] || '';
+            }
+        }
+    }"
+     x-init="init()">
+    <label class="form-label fw-bold">
+        <i class="fas @icon me-1"></i>
+        @label
+        @if (required)
+        {
+            <span class="text-danger">*</span>
+        }
+    </label>
+    <div class="dropdown w-100">
+        <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" 
+                type="button" 
+                @@click="toggleDropdown()"
+                :class="{ 'btn-outline-primary': selectedItem !== null }">
+            <span>
+                <i class="fas @icon me-2"></i>
+                <span x-text="selectedItem ? getDisplayText() : '@placeholder'"></span>
+            </span>
+            <i class="fas fa-chevron-down ms-2"></i>
+        </button>
+        
+        <div x-show="showResults" 
+             x-cloak
+             x-transition
+             class="dropdown-menu show w-100 shadow-lg border" 
+             style="max-height: 350px; overflow-y: auto;">
+            
+            <!-- Campo de búsqueda dentro del menú -->
+            <div class="px-3 py-2 border-bottom sticky-top bg-white">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control border-start-0 ps-0" 
+                           x-model="searchTerm"
+                           @@keydown.enter.prevent="search()"
+                           @@keydown.escape="showResults = false"
+                           placeholder="Buscar..."
+                           autocomplete="off"
+                           x-ref="searchInput" />
+                    <span class="input-group-text bg-light border-start-0" x-show="isLoading" x-cloak>
+                        <i class="fas fa-spinner fa-spin text-muted"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <div x-show="isLoading" class="text-center py-3">
+                <i class="fas fa-spinner fa-spin me-2"></i>Cargando...
+            </div>
+            
+            <div x-show="!isLoading">
+                <template x-for="item in results" :key="item.id">
+                    <a href="#" 
+                       class="dropdown-item d-flex align-items-center py-2"
+                       @@click.prevent="selectItem(item)">
+                        <i class="fas @icon me-2 text-primary"></i>
+                        <div class="text-start flex-grow-1">
+                            @if (!string.IsNullOrEmpty(secondaryField))
+                            {
+                                <div class="fw-bold" x-text="item['@secondaryField']"></div>
+                                <small class="text-muted" x-text="item['@displayField']"></small>
+                            }
+                            else
+                            {
+                                <span x-text="item['@displayField']"></span>
+                            }
+                        </div>
+                        <i x-show="selectedValue == item.id" class="fas fa-check text-success ms-2"></i>
+                    </a>
+                </template>
+                
+                <div x-show="results.length === 0" 
+                     class="dropdown-item-text text-muted text-center py-3">
+                    <i class="fas fa-search me-2"></i>No se encontraron resultados
+                </div>
+            </div>
+            
+            <!-- Botón para limpiar selección -->
+            <div x-show="selectedItem !== null" class="border-top">
+                <a href="#" 
+                   class="dropdown-item text-danger text-center py-2"
+                   @@click.prevent="clearSelection()">
+                    <i class="fas fa-times me-2"></i>Limpiar selección
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <input type="hidden" 
+           name="@fieldName" 
+           id="@fieldName" 
+           x-model="selectedValue"
+           data-val="@(required ? "true" : "false")"
+           data-val-required="@(required ? $"{label} es requerido" : "")" />
+    
+    <span class="field-validation-valid text-danger small mt-1 d-block" data-valmsg-for="@fieldName" data-valmsg-replace="true"></span>
+</div>
+
+<style>
+    [x-cloak] { display: none !important; }
+</style>

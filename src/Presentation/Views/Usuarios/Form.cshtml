@@ -1,0 +1,233 @@
+@model Proyecto_alcaldia.Application.ViewModels.CrearUsuarioViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+    ViewData["Title"] = isEdit ? "Editar Usuario" : "Crear Usuario";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Administración", null),
+        ("Usuarios", Url.Action("Index", "Usuarios")),
+        (isEdit ? "Editar Usuario" : "Crear Usuario", null)
+    })
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>@(isEdit ? "Editar" : "Crear Nuevo") Usuario
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="@action" asp-controller="Usuarios" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- Nombre Completo -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-2"></i>
+                                    @Html.DisplayNameFor(model => model.NombreCompleto)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.NombreCompleto, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Ingrese el nombre completo",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.NombreCompleto, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre de Usuario -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user-tag me-2"></i>
+                                    @Html.DisplayNameFor(model => model.NombreUsuario)
+                                </label>
+                                @Html.TextBoxFor(model => model.NombreUsuario, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre de usuario único",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.NombreUsuario, "", new { @class = "text-danger small mt-1 d-block" })
+                                <small class="text-muted">Opcional. Se generará automáticamente si se deja vacío.</small>
+                            </div>
+
+                            <!-- Correo Electrónico -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    @Html.DisplayNameFor(model => model.CorreoElectronico)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    @Html.TextBoxFor(model => model.CorreoElectronico, new { 
+                                        @class = "form-control", 
+                                        placeholder = "usuario@ejemplo.com",
+                                        type = "email",
+                                        autocomplete = "off"
+                                    })
+                                </div>
+                                @Html.ValidationMessageFor(model => model.CorreoElectronico, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Contraseña -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-lock me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Contrasena)
+                                    @if (!isEdit)
+                                    {
+                                        <span class="text-danger">*</span>
+                                    }
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    @Html.PasswordFor(model => model.Contrasena, new { 
+                                        @class = "form-control", 
+                                        placeholder = isEdit ? "Dejar vacío para no cambiar" : "Mínimo 6 caracteres",
+                                        id = "passwordInput",
+                                        required = !isEdit
+                                    })
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                @Html.ValidationMessageFor(model => model.Contrasena, "", new { @class = "text-danger small mt-1 d-block" })
+                                @if (isEdit)
+                                {
+                                    <small class="text-muted">Dejar vacío para mantener la contraseña actual.</small>
+                                }
+                            </div>
+
+                            <!-- Confirmar Contraseña -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-lock me-2"></i>
+                                    @Html.DisplayNameFor(model => model.ConfirmarContrasena)
+                                    @if (!isEdit)
+                                    {
+                                        <span class="text-danger">*</span>
+                                    }
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    @Html.PasswordFor(model => model.ConfirmarContrasena, new { 
+                                        @class = "form-control", 
+                                        placeholder = "Confirme la contraseña",
+                                        id = "confirmPasswordInput",
+                                        required = !isEdit
+                                    })
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                @Html.ValidationMessageFor(model => model.ConfirmarContrasena, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Roles -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user-shield me-2"></i>
+                                    Roles
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select select2-roles" 
+                                        id="rolesSelect" 
+                                        name="RolesIds" 
+                                        multiple="multiple" 
+                                        data-placeholder="Buscar y seleccionar roles..."
+                                        required>
+                                </select>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Puede seleccionar múltiples roles. Presione Enter para buscar.
+                                </small>
+                                @Html.ValidationMessageFor(model => model.RolesIds, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Estado Activo -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    @Html.CheckBoxFor(model => model.Activo, new { 
+                                        @class = "form-check-input", 
+                                        role = "switch",
+                                        id = "activoSwitch",
+                                        @checked = Model?.Activo ?? true
+                                    })
+                                    <label class="form-check-label fw-bold" for="activoSwitch">
+                                        @Html.DisplayNameFor(model => model.Activo)
+                                    </label>
+                                </div>
+                                <small class="text-muted">
+                                    Usuario activo puede acceder al sistema. Usuario inactivo no puede iniciar sesión.
+                                </small>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>@(isEdit ? "Guardar Cambios" : "Crear Usuario")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Toggle password visibility
+            $('#togglePassword').click(function() {
+                const passwordInput = $('#passwordInput');
+                const icon = $(this).find('i');
+                
+                if (passwordInput.attr('type') === 'password') {
+                    passwordInput.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    passwordInput.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+
+            $('#toggleConfirmPassword').click(function() {
+                const confirmPasswordInput = $('#confirmPasswordInput');
+                const icon = $(this).find('i');
+                
+                if (confirmPasswordInput.attr('type') === 'password') {
+                    confirmPasswordInput.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    confirmPasswordInput.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+        });
+    </script>
+}

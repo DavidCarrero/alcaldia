@@ -1,0 +1,173 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.SecretariaViewModel>
+
+@{
+    ViewData["Title"] = "Secretarías";
+    Layout = "_LayoutDashboard";
+    var activas = Model.Count(s => s.Activo);
+    var totalSubsecretarias = Model.Sum(s => s.CantidadSubsecretarias);
+}
+
+<div class="container-fluid" x-data="{ searchTerm: '' }">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Estructura Organizacional", null),
+        ("Secretarías", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <div class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-building"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Gestión de Secretarías</h2>
+            <p class="text-muted">Administración de secretarías y estructura organizacional</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nueva Secretaría
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-primary text-white">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Total Secretarías</h6>
+                            <h3 class="stat-value">@Model.Count()</h3>
+                            <small class="stat-description text-primary">Registradas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-success text-white">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Activas</h6>
+                            <h3 class="stat-value">@activas</h3>
+                            <small class="stat-description text-success">En operación</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-cyan text-white">
+                                <i class="fas fa-sitemap"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Subsecretarías</h6>
+                            <h3 class="stat-value">@totalSubsecretarias</h3>
+                            <small class="stat-description text-info">Dependencias</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card content-card">
+        <div class="card-header content-card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-building me-2"></i>
+                Lista de Secretarías
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <input type="text" 
+                       class="form-control" 
+                       x-model="searchTerm" 
+                       placeholder="Buscar por nombre o descripción...">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Alcaldía</th>
+                            <th>Subsecretarías</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var secretaria in Model)
+                        {
+                            <tr x-show="searchTerm === '' || 
+                                       '@secretaria.Nombre?.ToLower()'.includes(searchTerm.toLowerCase()) || 
+                                       '@secretaria.Descripcion?.ToLower()'.includes(searchTerm.toLowerCase())">
+                                <td><strong>@secretaria.Nombre</strong></td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(secretaria.Descripcion))
+                                    {
+                                        @(secretaria.Descripcion.Length > 100 ? secretaria.Descripcion.Substring(0, 100) + "..." : secretaria.Descripcion)
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@secretaria.NitAlcaldia</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@secretaria.CantidadSubsecretarias</span>
+                                </td>
+                                <td>
+                                    @if (secretaria.Activo)
+                                    {
+                                        <span class="badge bg-success">Activa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactiva</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@secretaria.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn-action btn-delete" 
+                                                title="Eliminar"
+                                                onclick="confirmDelete('@Url.Action("Delete", new { id = secretaria.Id })', '@secretaria.Nombre', '@Url.Action("Index")')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+}
