@@ -18,4 +18,5 @@ public interface IUsuarioService
     Task<bool> CambiarPasswordAsync(int usuarioId, string passwordActual, string nuevaPassword);
     Task CambiarTemaColorAsync(int usuarioId, string temaColor);
     Task ActualizarPerfilAsync(int usuarioId, UsuarioDto dto);
+    Task ActualizarFotoPerfilAsync(int usuarioId, byte[] fotoBytes);
 }

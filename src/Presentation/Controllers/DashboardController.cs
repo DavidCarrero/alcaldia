@@ -12,7 +12,10 @@ public class DashboardController : BaseController
 {
     private readonly ILogger<DashboardController> _logger;
 
-    public DashboardController(ApplicationDbContext context, ILogger<DashboardController> logger) : base(context)
+    public DashboardController(
+        ApplicationDbContext context, 
+        ILogger<DashboardController> logger,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _logger = logger;
     }

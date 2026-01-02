@@ -4,6 +4,7 @@ using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Application.DTOs;
 using Proyecto_alcaldia.Infrastructure.Data;
+using System.Security.Claims;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
@@ -18,7 +19,8 @@ public class UsuariosController : BaseController
         IUsuarioService usuarioService,
         IRolService rolService,
         ILogger<UsuariosController> logger,
-        ApplicationDbContext context) : base(context)
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _usuarioService = usuarioService;
         _rolService = rolService;
@@ -183,7 +185,7 @@ public class UsuariosController : BaseController
     [HttpGet]
     public async Task<IActionResult> Perfil()
     {
-        var userEmail = User.Identity?.Name;
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(userEmail))
         {
             return RedirectToAction("Login", "Auth");
@@ -202,7 +204,7 @@ public class UsuariosController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ActualizarPerfil(UsuarioDto model)
     {
-        var userEmail = User.Identity?.Name;
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(userEmail))
         {
             return RedirectToAction("Login", "Account");
@@ -263,7 +265,7 @@ public class UsuariosController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CambiarTemaColor(string temaColor)
     {
-        var userEmail = User.Identity?.Name;
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(userEmail))
         {
             return Json(new { success = false, message = "Usuario no autenticado" });
@@ -286,4 +288,59 @@ public class UsuariosController : BaseController
             return Json(new { success = false, message = ex.Message });
         }
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ActualizarFotoPerfil(IFormFile foto)
+    {
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
+        if (string.IsNullOrEmpty(userEmail))
+        {
+            return Json(new { success = false, message = "Usuario no autenticado" });
+        }
+
+        try
+        {
+            if (foto == null || foto.Length == 0)
+            {
+                return Json(new { success = false, message = "No se seleccionó ninguna foto" });
+            }
+
+            // Validar tamaño (máximo 2MB)
+            if (foto.Length > 2 * 1024 * 1024)
+            {
+                return Json(new { success = false, message = "La imagen no debe superar 2MB" });
+            }
+
+            // Validar tipo de archivo
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(foto.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                return Json(new { success = false, message = "Solo se permiten imágenes JPG y PNG" });
+            }
+
+            var usuario = await _usuarioService.GetUsuarioByEmailAsync(userEmail);
+            if (usuario == null)
+            {
+                return Json(new { success = false, message = "Usuario no encontrado" });
+            }
+
+            // Leer los bytes de la foto
+            using var memoryStream = new MemoryStream();
+            await foto.CopyToAsync(memoryStream);
+            var fotoBytes = memoryStream.ToArray();
+
+            // Actualizar la foto (será encriptada automáticamente en el servicio)
+            await _usuarioService.ActualizarFotoPerfilAsync(usuario.Id, fotoBytes);
+
+            return Json(new { success = true, message = "Foto de perfil actualizada exitosamente" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al actualizar foto de perfil");
+            return Json(new { success = false, message = "Error al actualizar la foto de perfil" });
+        }
+    }
 }
+

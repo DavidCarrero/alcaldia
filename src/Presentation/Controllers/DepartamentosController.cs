@@ -2,18 +2,21 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
+using Proyecto_alcaldia.Infrastructure.Data;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
 [Authorize]
-public class DepartamentosController : Controller
+public class DepartamentosController : BaseController
 {
     private readonly IDepartamentoService _departamentoService;
     private readonly ILogger<DepartamentosController> _logger;
 
     public DepartamentosController(
         IDepartamentoService departamentoService,
-        ILogger<DepartamentosController> logger)
+        ILogger<DepartamentosController> logger,
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _departamentoService = departamentoService;
         _logger = logger;

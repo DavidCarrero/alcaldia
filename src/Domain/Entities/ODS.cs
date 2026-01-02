@@ -28,17 +28,20 @@ public class ODS : BaseEntity
     [Column("descripcion", TypeName = "text")]
     public string? Descripcion { get; set; }
 
-    [Column("meta_ods_id")]
-    public int? MetaODSId { get; set; }
-
-    [ForeignKey("MetaODSId")]
-    public MetaODS? MetaODS { get; set; }
-
     [Column("fecha_inicio")]
     public DateTime? FechaInicio { get; set; }
 
     [Column("fecha_fin")]
     public DateTime? FechaFin { get; set; }
 
+    [MaxLength(20)]
+    [Column("nivel_impacto")]
+    public string? NivelImpacto { get; set; }
+
+    [MaxLength(20)]
+    [Column("estado")]
+    public string Estado { get; set; } = "ACTIVO";
+
     public ICollection<Programa> Programas { get; set; } = new List<Programa>();
+    public ICollection<ODSMetaODS> ODSMetasODS { get; set; } = new List<ODSMetaODS>();
 }

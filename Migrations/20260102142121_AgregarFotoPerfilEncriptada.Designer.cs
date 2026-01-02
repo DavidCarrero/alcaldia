@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Proyecto_alcaldia.Infrastructure.Data;
 namespace Proyecto_alcaldia.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102142121_AgregarFotoPerfilEncriptada")]
+    partial class AgregarFotoPerfilEncriptada
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -728,12 +731,6 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
 
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("estado");
-
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
 
@@ -750,10 +747,9 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio");
 
-                    b.Property<string>("NivelImpacto")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("nivel_impacto");
+                    b.Property<int?>("MetaODSId")
+                        .HasColumnType("integer")
+                        .HasColumnName("meta_ods_id");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -763,33 +759,12 @@ namespace Proyecto_alcaldia.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MetaODSId");
+
                     b.HasIndex("AlcaldiaId", "Codigo")
                         .IsUnique();
 
                     b.ToTable("ods");
-                });
-
-            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.ODSMetaODS", b =>
-                {
-                    b.Property<int>("ODSId")
-                        .HasColumnType("integer")
-                        .HasColumnName("ods_id");
-
-                    b.Property<int>("MetaODSId")
-                        .HasColumnType("integer")
-                        .HasColumnName("meta_ods_id");
-
-                    b.Property<DateTime>("FechaAsociacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fecha_asociacion")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("ODSId", "MetaODSId");
-
-                    b.HasIndex("MetaODSId");
-
-                    b.ToTable("ods_metas_ods");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.PlanDepartamental", b =>
@@ -1969,26 +1944,14 @@ namespace Proyecto_alcaldia.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Alcaldia");
-                });
-
-            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.ODSMetaODS", b =>
-                {
                     b.HasOne("Proyecto_alcaldia.Domain.Entities.MetaODS", "MetaODS")
-                        .WithMany("ODSMetasODS")
+                        .WithMany("ODSList")
                         .HasForeignKey("MetaODSId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Proyecto_alcaldia.Domain.Entities.ODS", "ODS")
-                        .WithMany("ODSMetasODS")
-                        .HasForeignKey("ODSId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Alcaldia");
 
                     b.Navigation("MetaODS");
-
-                    b.Navigation("ODS");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.PlanDepartamental", b =>
@@ -2315,7 +2278,7 @@ namespace Proyecto_alcaldia.Migrations
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.MetaODS", b =>
                 {
-                    b.Navigation("ODSMetasODS");
+                    b.Navigation("ODSList");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Municipio", b =>
@@ -2325,8 +2288,6 @@ namespace Proyecto_alcaldia.Migrations
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.ODS", b =>
                 {
-                    b.Navigation("ODSMetasODS");
-
                     b.Navigation("Programas");
                 });
 

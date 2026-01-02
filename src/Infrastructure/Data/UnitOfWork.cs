@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Proyecto_alcaldia.Domain.Interfaces;
+using Proyecto_alcaldia.Infrastructure.Repositories;
 
 namespace Proyecto_alcaldia.Infrastructure.Data;
 
@@ -8,13 +9,23 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
     private IDbContextTransaction? _transaction;
+    private IODSRepository? _odsRepository;
 
     public UnitOfWork(ApplicationDbContext context)
     {
         _context = context;
     }
 
+    public DbContext Context => _context;
+
+    public IODSRepository ODS => _odsRepository ??= new ODSRepository(_context);
+
     public async Task<int> SaveChangesAsync()
+    {
+        return await _context.SaveChangesAsync();
+    }
+
+    public async Task<int> CompleteAsync()
     {
         return await _context.SaveChangesAsync();
     }

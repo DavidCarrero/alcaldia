@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
+using Proyecto_alcaldia.Infrastructure.Data;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
 [Authorize]
-public class MunicipiosController : Controller
+public class MunicipiosController : BaseController
 {
     private readonly IMunicipioService _municipioService;
     private readonly IDepartamentoService _departamentoService;
@@ -15,7 +16,9 @@ public class MunicipiosController : Controller
     public MunicipiosController(
         IMunicipioService municipioService,
         IDepartamentoService departamentoService,
-        ILogger<MunicipiosController> logger)
+        ILogger<MunicipiosController> logger,
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _municipioService = municipioService;
         _departamentoService = departamentoService;

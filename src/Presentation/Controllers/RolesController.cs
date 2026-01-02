@@ -2,16 +2,21 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
+using Proyecto_alcaldia.Infrastructure.Data;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
 [Authorize]
-public class RolesController : Controller
+public class RolesController : BaseController
 {
     private readonly IRolService _rolService;
     private readonly ILogger<RolesController> _logger;
 
-    public RolesController(IRolService rolService, ILogger<RolesController> logger)
+    public RolesController(
+        IRolService rolService, 
+        ILogger<RolesController> logger,
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _rolService = rolService;
         _logger = logger;

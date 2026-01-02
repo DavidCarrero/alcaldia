@@ -9,15 +9,18 @@ public class UsuarioService : IUsuarioService
 {
     private readonly IUsuarioRepository _usuarioRepository;
     private readonly IRolRepository _rolRepository;
+    private readonly IImageEncryptionService _imageEncryptionService;
     private readonly ILogger<UsuarioService> _logger;
 
     public UsuarioService(
         IUsuarioRepository usuarioRepository,
         IRolRepository rolRepository,
+        IImageEncryptionService imageEncryptionService,
         ILogger<UsuarioService> logger)
     {
         _usuarioRepository = usuarioRepository;
         _rolRepository = rolRepository;
+        _imageEncryptionService = imageEncryptionService;
         _logger = logger;
     }
 
@@ -227,8 +230,37 @@ public class UsuarioService : IUsuarioService
         await _usuarioRepository.UpdateAsync(usuario);
     }
 
-    private static UsuarioDto MapToDto(Usuario usuario)
+    public async Task ActualizarFotoPerfilAsync(int usuarioId, byte[] fotoBytes)
     {
+        var usuario = await _usuarioRepository.GetByIdAsync(usuarioId);
+        if (usuario == null)
+            throw new InvalidOperationException("Usuario no encontrado");
+
+        // Encriptar la foto antes de guardarla
+        usuario.FotoPerfilEncriptada = _imageEncryptionService.EncryptImage(fotoBytes);
+        
+        await _usuarioRepository.UpdateAsync(usuario);
+        _logger.LogInformation($"Foto de perfil actualizada para usuario ID: {usuarioId}");
+    }
+
+    private UsuarioDto MapToDto(Usuario usuario)
+    {
+        string? fotoBase64 = null;
+        
+        // Desencriptar la foto si existe
+        if (!string.IsNullOrEmpty(usuario.FotoPerfilEncriptada))
+        {
+            try
+            {
+                var fotoBytes = _imageEncryptionService.DecryptImage(usuario.FotoPerfilEncriptada);
+                fotoBase64 = Convert.ToBase64String(fotoBytes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Error al desencriptar foto de perfil para usuario ID: {usuario.Id}");
+            }
+        }
+
         return new UsuarioDto
         {
             Id = usuario.Id,
@@ -239,6 +271,7 @@ public class UsuarioService : IUsuarioService
             UltimoAcceso = usuario.UltimoAcceso,
             FechaCreacion = usuario.FechaCreacion,
             TemaColor = usuario.TemaColor,
+            FotoPerfil = fotoBase64,
             Roles = usuario.UsuariosRoles
                 .Where(ur => ur.Activo)
                 .Select(ur => ur.Rol.Nombre)

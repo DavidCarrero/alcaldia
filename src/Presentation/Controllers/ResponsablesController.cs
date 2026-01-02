@@ -1,17 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
+using Proyecto_alcaldia.Infrastructure.Data;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
-public class ResponsablesController : Controller
+public class ResponsablesController : BaseController
 {
     private readonly IResponsableService _responsableService;
     private readonly ILogger<ResponsablesController> _logger;
 
     public ResponsablesController(
         IResponsableService responsableService,
-        ILogger<ResponsablesController> logger)
+        ILogger<ResponsablesController> logger,
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _responsableService = responsableService;
         _logger = logger;

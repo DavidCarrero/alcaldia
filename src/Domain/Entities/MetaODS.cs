@@ -28,5 +28,5 @@ public class MetaODS : BaseEntity
     [Column("descripcion", TypeName = "text")]
     public string? Descripcion { get; set; }
 
-    public ICollection<ODS> ODSList { get; set; } = new List<ODS>();
+    public ICollection<ODSMetaODS> ODSMetasODS { get; set; } = new List<ODSMetaODS>();
 }

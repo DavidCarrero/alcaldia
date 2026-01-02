@@ -10,5 +10,6 @@ public class UsuarioDto
     public DateTime FechaCreacion { get; set; }
     public bool Activo { get; set; }
     public string? TemaColor { get; set; }
+    public string? FotoPerfil { get; set; } // Base64 de la foto desencriptada
     public List<string> Roles { get; set; } = new();
 }

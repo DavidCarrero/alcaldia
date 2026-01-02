@@ -1,0 +1,245 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.ODSViewModel>
+
+@{
+    ViewData["Title"] = "ODS (Objetivos de Desarrollo Sostenible)";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid" x-data="{ searchTerm: '' }">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Configuración", null),
+        ("ODS", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <div class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-globe"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Objetivos de Desarrollo Sostenible</h2>
+            <p class="text-muted">Gestión de ODS para el seguimiento de proyectos y metas sostenibles</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo ODS
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-globe-americas fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total ODS</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TotalODS</h3>
+                            <small class="text-primary">Registrados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">ODS Activos</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.ODSActivos</h3>
+                            <small class="text-success">En seguimiento</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-danger bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-exclamation-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Impacto Alto</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.ImpactoAlto</h3>
+                            <small class="text-danger">Prioridad alta</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Impacto Medio</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.ImpactoMedio</h3>
+                            <small class="text-warning">Prioridad media</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Búsqueda -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" 
+                       x-model="searchTerm"
+                       placeholder="Buscar por código, nombre o descripción...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de ODS -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de ODS</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Nivel Impacto</th>
+                            <th>Estado</th>
+                            <th>Metas ODS</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ods in Model)
+                        {
+                            <tr x-show="searchTerm === '' || 
+                                       '@ods.Codigo'.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                       '@ods.Nombre'.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                       '@(ods.Descripcion ?? "")'.toLowerCase().includes(searchTerm.toLowerCase())" 
+                                x-cloak>
+                                <td><span class="fw-bold text-primary">@ods.Codigo</span></td>
+                                <td>@ods.Nombre</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(ods.Descripcion) && ods.Descripcion.Length > 50)
+                                    {
+                                        @ods.Descripcion.Substring(0, 50)<text>...</text>
+                                    }
+                                    else
+                                    {
+                                        @ods.Descripcion
+                                    }
+                                </td>
+                                <td>
+                                    @if (ods.NivelImpacto == "Alta")
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-up me-1"></i>Alta
+                                        </span>
+                                    }
+                                    else if (ods.NivelImpacto == "Media")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-minus me-1"></i>Media
+                                        </span>
+                                    }
+                                    else if (ods.NivelImpacto == "Baja")
+                                    {
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-arrow-down me-1"></i>Baja
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (ods.Estado == "ACTIVO")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times-circle me-1"></i>Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary rounded-pill">
+                                        @ods.MetasODSIds.Count metas
+                                    </span>
+                                </td>
+                                <td>@(ods.FechaInicio?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                <td>@(ods.FechaFin?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                <td>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a asp-action="Edit" asp-route-id="@ods.Id" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@ods.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" 
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                    title="Eliminar"
+                                                    onclick="return confirm('¿Está seguro de eliminar este ODS?');">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-globe fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay ODS registrados</h5>
+                    <p class="text-muted">Comience creando un nuevo Objetivo de Desarrollo Sostenible</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    [x-cloak] {
+        display: none !important;
+    }
+</style>

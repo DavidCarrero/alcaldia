@@ -19,7 +19,8 @@ public class AlcaldiasController : BaseController
         IMunicipioService municipioService,
         ILogger<AlcaldiasController> logger,
         IWebHostEnvironment env,
-        ApplicationDbContext context) : base(context)
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _alcaldiaService = alcaldiaService;
         _municipioService = municipioService;

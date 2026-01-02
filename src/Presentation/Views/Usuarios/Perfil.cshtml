@@ -24,32 +24,55 @@
         </div>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
     <div class="row g-4">
         <!-- Columna Izquierda - Información del Usuario -->
         <div class="col-lg-4">
             <!-- Tarjeta de Perfil -->
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card border-0 shadow-sm mb-4" x-data="{ 
+                showPhotoUpload: false,
+                photoPreview: '@(Model.FotoPerfil != null ? "data:image/jpeg;base64," + Model.FotoPerfil : "")',
+                uploadingPhoto: false,
+                previewPhoto(event) {
+                    const file = event.target.files[0];
+                    if (file && file.size <= 2097152) { // 2MB
+                        const reader = new FileReader();
+                        reader.onload = (e) => this.photoPreview = e.target.result;
+                        reader.readAsDataURL(file);
+                    } else if (file) {
+                        ToastNotification.error('La imagen no debe superar 2MB');
+                        event.target.value = '';
+                    }
+                },
+                async uploadPhoto(event) {
+                    this.uploadingPhoto = true;
+                    const formData = new FormData(event.target);
+                    try {
+                        const response = await fetch(event.target.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            ToastNotification.success(result.message || 'Foto actualizada exitosamente');
+                            this.showPhotoUpload = false;
+                        } else {
+                            ToastNotification.error(result.message || 'Error al actualizar la foto');
+                        }
+                    } catch (error) {
+                        ToastNotification.error('Error al subir la foto');
+                    } finally {
+                        this.uploadingPhoto = false;
+                    }
+                }
+            }">
                 <div class="card-body text-center p-4">
                     <!-- Avatar -->
                     <div class="avatar-wrapper mb-3">
-                        <div class="avatar-lg mx-auto" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <span class="avatar-initials">@iniciales</span>
+                        <div class="avatar-lg mx-auto" 
+                             :style="photoPreview ? `background-image: url('${photoPreview}'); background-size: cover; background-position: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);` : `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);`">
+                            <template x-if="!photoPreview">
+                                <span class="avatar-initials">@iniciales</span>
+                            </template>
                         </div>
                     </div>
 
@@ -69,10 +92,32 @@
                         }
                     </div>
 
-                    <!-- Botón Cambiar Foto (futuro) -->
-                    <button type="button" class="btn btn-outline-primary btn-sm" disabled>
-                        <i class="fas fa-camera me-2"></i>Cambiar Foto
+                    <!-- Botón Cambiar Foto -->
+                    <button type="button" class="btn btn-outline-primary btn-sm" x-on:click="showPhotoUpload = !showPhotoUpload">
+                        <i class="fas fa-camera me-2"></i>
+                        <span x-text="showPhotoUpload ? 'Cancelar' : 'Cambiar Foto'"></span>
                     </button>
+
+                    <!-- Formulario de Subida de Foto -->
+                    <div x-show="showPhotoUpload" x-transition class="mt-3">
+                        <form asp-action="ActualizarFotoPerfil" method="post" enctype="multipart/form-data" x-on:submit.prevent="uploadPhoto($event)">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-2">
+                                <input type="file" 
+                                       name="foto" 
+                                       id="fotoInput" 
+                                       class="form-control form-control-sm" 
+                                       accept="image/jpeg,image/png,image/jpg"
+                                       x-on:change="previewPhoto($event)"
+                                       required />
+                                <small class="text-muted d-block mt-1">Formatos: JPG, PNG. Máximo 2MB</small>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm" x-bind:disabled="uploadingPhoto">
+                                <i class="fas fa-upload me-1"></i>
+                                <span x-text="uploadingPhoto ? 'Subiendo...' : 'Subir Foto'"></span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -204,27 +249,42 @@
                         <input type="hidden" name="id" value="@Model.Id" />
 
                         <div class="row g-3">
-                            <div class="col-12">
+                            <div class="col-12" x-data="{ showPassword: false }">
                                 <label class="form-label fw-semibold">
                                     <i class="fas fa-key me-1 text-primary"></i>Contraseña Actual
                                 </label>
-                                <input type="password" name="passwordActual" class="form-control" required />
+                                <div class="input-group">
+                                    <input x-bind:type="showPassword ? 'text' : 'password'" name="passwordActual" class="form-control" required />
+                                    <button class="btn btn-outline-secondary" type="button" x-on:click="showPassword = !showPassword">
+                                        <i x-bind:class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                    </button>
+                                </div>
                                 <small class="text-muted">Ingresa tu contraseña actual para verificar tu identidad</small>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-6" x-data="{ showPassword: false }">
                                 <label class="form-label fw-semibold">
                                     <i class="fas fa-lock me-1 text-primary"></i>Nueva Contraseña
                                 </label>
-                                <input type="password" name="nuevaPassword" class="form-control" minlength="6" required />
+                                <div class="input-group">
+                                    <input x-bind:type="showPassword ? 'text' : 'password'" name="nuevaPassword" class="form-control" minlength="6" required />
+                                    <button class="btn btn-outline-secondary" type="button" x-on:click="showPassword = !showPassword">
+                                        <i x-bind:class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                    </button>
+                                </div>
                                 <small class="text-muted">Mínimo 6 caracteres</small>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-6" x-data="{ showPassword: false }">
                                 <label class="form-label fw-semibold">
                                     <i class="fas fa-lock-open me-1 text-primary"></i>Confirmar Contraseña
                                 </label>
-                                <input type="password" name="confirmarPassword" class="form-control" minlength="6" required />
+                                <div class="input-group">
+                                    <input x-bind:type="showPassword ? 'text' : 'password'" name="confirmarPassword" class="form-control" minlength="6" required />
+                                    <button class="btn btn-outline-secondary" type="button" x-on:click="showPassword = !showPassword">
+                                        <i x-bind:class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                    </button>
+                                </div>
                                 <small class="text-muted">Repite la nueva contraseña</small>
                             </div>
                         </div>
@@ -253,16 +313,18 @@
                             @{
                                 var colores = new Dictionary<string, string>
                                 {
-                                    { "blue", "#0d6efd" },
-                                    { "green", "#198754" },
-                                    { "purple", "#6f42c1" },
-                                    { "orange", "#fd7e14" },
-                                    { "red", "#dc3545" },
-                                    { "teal", "#20c997" },
-                                    { "yellow", "#ffc107" }
+                                    { "purple", "#5512C8" },
+                                    { "blue", "#0955D0" },
+                                    { "green", "#1BC057" },
+                                    { "orange", "#CC5805" },
+                                    { "red", "#BE193F" },
+                                    { "turquoise", "#15BFAB" },
+                                    { "yellow", "#D29F07" },
+                                    { "slate", "#304458" },
+                                    { "indigo", "#6610f2" }
                                 };
                                 
-                                var temaActual = Model.TemaColor ?? "blue";
+                                var temaActual = Model.TemaColor ?? "default";
                             }
 
                             @foreach (var color in colores)
@@ -384,17 +446,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Mostrar mensaje de éxito
-                        const alert = document.createElement('div');
-                        alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                        alert.style.zIndex = '9999';
-                        alert.innerHTML = `
-                            <i class="fas fa-check-circle me-2"></i>${data.message}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        `;
-                        document.body.appendChild(alert);
-                        setTimeout(() => alert.remove(), 3000);
+                        // Mostrar notificación animada
+                        ToastNotification.success(data.message);
+                    } else {
+                        ToastNotification.error(data.message || 'Error al actualizar el tema');
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    ToastNotification.error('Error al actualizar el tema');
                 });
             });
         });

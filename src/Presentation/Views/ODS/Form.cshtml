@@ -1,0 +1,222 @@
+@model Proyecto_alcaldia.Application.ViewModels.ODSViewModel
+
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Crear ODS" : "Editar ODS";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Configuración", null),
+        ("ODS", Url.Action("Index")),
+        (Model.Id == 0 ? "Nuevo ODS" : "Editar ODS", null)
+    })
+
+    <!-- Encabezado -->
+    <div class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-@(Model.Id == 0 ? "plus-circle" : "edit")"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>@(Model.Id == 0 ? "Crear Nuevo ODS" : "Editar ODS")</h2>
+            <p class="text-muted">@(Model.Id == 0 ? "Complete la información para registrar un nuevo Objetivo de Desarrollo Sostenible" : "Modifique los datos del ODS")</p>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form asp-action="@(Model.Id == 0 ? "Create" : "Edit")" method="post" id="odsForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div class="row g-3">
+                    <!-- Alcaldía -->
+                    <div class="col-md-6">
+                        <label asp-for="AlcaldiaId" class="form-label fw-bold">
+                            <i class="fas fa-landmark me-2 text-primary"></i>Alcaldía
+                        </label>
+                        <select asp-for="AlcaldiaId" class="form-select" asp-items="@ViewBag.Alcaldias">
+                            <option value="">-- Seleccione una alcaldía --</option>
+                        </select>
+                        <span asp-validation-for="AlcaldiaId" class="text-danger"></span>
+                    </div>
+
+                    <!-- Código -->
+                    <div class="col-md-6">
+                        <label asp-for="Codigo" class="form-label fw-bold">
+                            <i class="fas fa-barcode me-2 text-primary"></i>Código
+                        </label>
+                        <input asp-for="Codigo" class="form-control" placeholder="Ej: ODS-001" />
+                        <span asp-validation-for="Codigo" class="text-danger"></span>
+                    </div>
+
+                    <!-- Nombre -->
+                    <div class="col-md-12">
+                        <label asp-for="Nombre" class="form-label fw-bold">
+                            <i class="fas fa-heading me-2 text-primary"></i>Nombre
+                        </label>
+                        <input asp-for="Nombre" class="form-control" placeholder="Nombre del ODS" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="col-md-12">
+                        <label asp-for="Descripcion" class="form-label fw-bold">
+                            <i class="fas fa-align-left me-2 text-primary"></i>Descripción
+                        </label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="4" placeholder="Descripción detallada del ODS"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                    <!-- Nivel de Impacto -->
+                    <div class="col-md-4">
+                        <label asp-for="NivelImpacto" class="form-label fw-bold">
+                            <i class="fas fa-chart-line me-2 text-primary"></i>Nivel de Impacto
+                        </label>
+                        <select asp-for="NivelImpacto" class="form-select" asp-items="@ViewBag.NivelesImpacto">
+                            <option value="">-- Seleccione nivel --</option>
+                        </select>
+                        <span asp-validation-for="NivelImpacto" class="text-danger"></span>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="col-md-4">
+                        <label asp-for="Estado" class="form-label fw-bold">
+                            <i class="fas fa-toggle-on me-2 text-primary"></i>Estado
+                        </label>
+                        <select asp-for="Estado" class="form-select" asp-items="@ViewBag.Estados">
+                            <option value="">-- Seleccione estado --</option>
+                        </select>
+                        <span asp-validation-for="Estado" class="text-danger"></span>
+                    </div>
+
+                    <!-- Metas ODS (Multi-select usando partial reutilizable) y Activo simple -->
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input", @checked = Model?.Activo ?? true })
+                            <label class="form-check-label fw-bold">
+                                @Html.DisplayNameFor(model => model.Activo)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        @{
+                            ViewData["fieldName"] = "MetasODSIds";
+                            ViewData["label"] = "Metas ODS Asociadas";
+                            ViewData["options"] = ViewBag.MetasODS;
+                            ViewData["selectedValues"] = Model?.MetasODSIds;
+                            ViewData["placeholder"] = "Seleccione una o más metas";
+                            ViewData["required"] = "False";
+                            ViewData["icon"] = "fa-bullseye";
+                        }
+                        @await Html.PartialAsync("_SimpleMultiDropdown")
+                    </div>
+
+                    <!-- Fechas -->
+                    <div class="col-md-6">
+                        <label asp-for="FechaInicio" class="form-label fw-bold">
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>Fecha Inicio
+                        </label>
+                        <input asp-for="FechaInicio" type="date" class="form-control" />
+                        <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="FechaFin" class="form-label fw-bold">
+                            <i class="fas fa-calendar-check me-2 text-primary"></i>Fecha Fin
+                        </label>
+                        <input asp-for="FechaFin" type="date" class="form-control" />
+                        <span asp-validation-for="FechaFin" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>@(Model.Id == 0 ? "Crear ODS" : "Guardar Cambios")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function multiSelect(options, initialSelected) {
+            return {
+                options: options,
+                selected: initialSelected || [],
+                searchTerm: '',
+                showDropdown: false,
+
+                get filteredOptions() {
+                    if (!this.searchTerm) {
+                        return this.options;
+                    }
+                    return this.options.filter(opt => 
+                        opt.text.toLowerCase().includes(this.searchTerm.toLowerCase())
+                    );
+                },
+
+                toggleSelection(value) {
+                    const intValue = parseInt(value);
+                    const index = this.selected.indexOf(intValue);
+                    if (index === -1) {
+                        this.selected.push(intValue);
+                    } else {
+                        this.selected.splice(index, 1);
+                    }
+                },
+
+                removeSelection(value) {
+                    const intValue = parseInt(value);
+                    const index = this.selected.indexOf(intValue);
+                    if (index !== -1) {
+                        this.selected.splice(index, 1);
+                    }
+                },
+
+                getOptionText(value) {
+                    const intValue = parseInt(value);
+                    const option = this.options.find(opt => parseInt(opt.value) === intValue);
+                    return option ? option.text : '';
+                }
+            };
+        }
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const multiSelectContainers = document.querySelectorAll('[x-data*="multiSelect"]');
+            multiSelectContainers.forEach(container => {
+                if (!container.contains(event.target)) {
+                    const alpineData = Alpine.$data(container);
+                    if (alpineData) {
+                        alpineData.showDropdown = false;
+                    }
+                }
+            });
+        });
+    </script>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .hover-bg-light:hover {
+            background-color: #f8f9fa;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+    </style>
+}

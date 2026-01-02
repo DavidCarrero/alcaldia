@@ -1,17 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
+using Proyecto_alcaldia.Infrastructure.Data;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
-public class AlcaldesController : Controller
+public class AlcaldesController : BaseController
 {
     private readonly IAlcaldeService _alcaldeService;
     private readonly ILogger<AlcaldesController> _logger;
 
     public AlcaldesController(
         IAlcaldeService alcaldeService,
-        ILogger<AlcaldesController> logger)
+        ILogger<AlcaldesController> logger,
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _alcaldeService = alcaldeService;
         _logger = logger;

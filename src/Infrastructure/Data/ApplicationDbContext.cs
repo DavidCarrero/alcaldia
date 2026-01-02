@@ -44,6 +44,7 @@ public class ApplicationDbContext : DbContext
     // Configuraciones - ODS
     public DbSet<ODS> ODS { get; set; }
     public DbSet<MetaODS> MetasODS { get; set; }
+    public DbSet<ODSMetaODS> ODSMetasODS { get; set; }
 
     // Configuraciones - Proyectos
     public DbSet<Indicador> Indicadores { get; set; }
@@ -441,11 +442,6 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(o => o.AlcaldiaId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(o => o.MetaODS)
-                .WithMany(m => m.ODSList)
-                .HasForeignKey(o => o.MetaODSId)
-                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // MetaODS
@@ -461,6 +457,24 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(m => m.AlcaldiaId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ODSMetaODS (Junction Table)
+        modelBuilder.Entity<ODSMetaODS>(entity =>
+        {
+            entity.HasKey(e => new { e.ODSId, e.MetaODSId });
+
+            entity.HasOne(om => om.ODS)
+                .WithMany(o => o.ODSMetasODS)
+                .HasForeignKey(om => om.ODSId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(om => om.MetaODS)
+                .WithMany(m => m.ODSMetasODS)
+                .HasForeignKey(om => om.MetaODSId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(e => e.FechaAsociacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         // Indicador

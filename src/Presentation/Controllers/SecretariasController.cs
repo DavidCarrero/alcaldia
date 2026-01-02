@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
+using Proyecto_alcaldia.Infrastructure.Data;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
 [Authorize]
-public class SecretariasController : Controller
+public class SecretariasController : BaseController
 {
     private readonly ISecretariaService _secretariaService;
     private readonly IAlcaldiaService _alcaldiaService;
@@ -15,7 +16,9 @@ public class SecretariasController : Controller
     public SecretariasController(
         ISecretariaService secretariaService,
         IAlcaldiaService alcaldiaService,
-        ILogger<SecretariasController> logger)
+        ILogger<SecretariasController> logger,
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _secretariaService = secretariaService;
         _alcaldiaService = alcaldiaService;

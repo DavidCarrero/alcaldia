@@ -29,14 +29,19 @@ public class ODSViewModel
     [Display(Name = "Descripción")]
     public string? Descripcion { get; set; }
 
-    [Display(Name = "Meta ODS")]
-    public int? MetaODSId { get; set; }
+    [Display(Name = "Nivel de Impacto")]
+    [StringLength(20)]
+    public string? NivelImpacto { get; set; }
 
-    [Display(Name = "Código Meta ODS")]
-    public string? CodigoMetaODS { get; set; }
+    [Display(Name = "Estado")]
+    [StringLength(20)]
+    public string? Estado { get; set; }
 
-    [Display(Name = "Nombre Meta ODS")]
-    public string? NombreMetaODS { get; set; }
+    [Display(Name = "Metas ODS")]
+    public List<int> MetasODSIds { get; set; } = new();
+
+    [Display(Name = "Metas ODS Seleccionadas")]
+    public List<string> NombresMetasODS { get; set; } = new();
 
     [Display(Name = "Fecha Inicio")]
     [DataType(DataType.Date)]

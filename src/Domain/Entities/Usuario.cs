@@ -39,5 +39,8 @@ public class Usuario : BaseEntity
     [Column("tema_color")]
     public string? TemaColor { get; set; } = "default";
 
+    [Column("foto_perfil_encriptada")]
+    public string? FotoPerfilEncriptada { get; set; }
+
     public ICollection<UsuarioRol> UsuariosRoles { get; set; } = new List<UsuarioRol>();
 }

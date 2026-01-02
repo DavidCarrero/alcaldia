@@ -1,0 +1,189 @@
+@* Menú lateral y barra superior compartida - Se incluye desde _LayoutDashboard *@
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <i class="fas fa-city fa-2x mb-2"></i>
+        <h4>Gestión Municipal</h4>
+    </div>
+    <ul class="sidebar-menu">
+        <li class="menu-item">
+            <a href="@Url.Action("Index", "Dashboard")" class="menu-link active">
+                <i class="menu-icon fas fa-home"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'configuracion-menu')">
+                <i class="menu-icon fas fa-cog"></i>
+                <span class="menu-text">Configuración</span>
+            </a>
+            <ul class="submenu" id="configuracion-menu">
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Alcaldias")" class="menu-link">
+                        <i class="menu-icon fas fa-building"></i>
+                        <span class="menu-text">Alcaldías</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Alcaldes")" class="menu-link">
+                        <i class="menu-icon fas fa-user-tie"></i>
+                        <span class="menu-text">Alcaldes</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Departamentos")" class="menu-link">
+                        <i class="menu-icon fas fa-map-marked-alt"></i>
+                        <span class="menu-text">Departamentos</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Municipios")" class="menu-link">
+                        <i class="menu-icon fas fa-city"></i>
+                        <span class="menu-text">Municipios</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "ODS")" class="menu-link">
+                        <i class="menu-icon fas fa-globe"></i>
+                        <span class="menu-text">ODS</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="menu-item">
+            <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'estructura-menu')">
+                <i class="menu-icon fas fa-sitemap"></i>
+                <span class="menu-text">Estructura</span>
+            </a>
+            <ul class="submenu" id="estructura-menu">
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Secretarias")" class="menu-link">
+                        <i class="menu-icon fas fa-briefcase"></i>
+                        <span class="menu-text">Secretarías</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Subsecretarias")" class="menu-link">
+                        <i class="menu-icon fas fa-building"></i>
+                        <span class="menu-text">Subsecretarías</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Responsables")" class="menu-link">
+                        <i class="menu-icon fas fa-users"></i>
+                        <span class="menu-text">Responsables</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="menu-item">
+            <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'seguridad-menu')">
+                <i class="menu-icon fas fa-shield-alt"></i>
+                <span class="menu-text">Seguridad</span>
+            </a>
+            <ul class="submenu" id="seguridad-menu">
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Usuarios")" class="menu-link">
+                        <i class="menu-icon fas fa-users"></i>
+                        <span class="menu-text">Usuarios</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="@Url.Action("Index", "Roles")" class="menu-link">
+                        <i class="menu-icon fas fa-user-tag"></i>
+                        <span class="menu-text">Roles</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</aside>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Top Navbar -->
+    <nav class="top-navbar">
+        <button class="toggle-btn" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="user-menu">
+            <div class="user-info">
+                <p class="user-name">@ViewBag.NombreUsuario</p>
+                <p class="user-role">@(User.IsInRole("Administrador") ? "Administrador" : "Usuario")</p>
+            </div>
+
+            <!-- Selector de Tema de Color -->
+            <div class="dropdown theme-selector">
+                <button class="btn btn-light" type="button" data-bs-toggle="dropdown" title="Tema de Color">
+                    <i class="fas fa-palette fa-lg"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <div class="theme-color-grid">
+                        <div class="theme-color-option" data-theme="default" title="Azul (Por defecto)"></div>
+                        <div class="theme-color-option" data-theme="purple" title="Púrpura"></div>
+                        <div class="theme-color-option" data-theme="blue" title="Azul Oscuro"></div>
+                        <div class="theme-color-option" data-theme="green" title="Verde"></div>
+                        <div class="theme-color-option" data-theme="orange" title="Naranja"></div>
+                        <div class="theme-color-option" data-theme="red" title="Rojo"></div>
+                        <div class="theme-color-option" data-theme="turquoise" title="Turquesa"></div>
+                        <div class="theme-color-option" data-theme="yellow" title="Amarillo"></div>
+                        <div class="theme-color-option" data-theme="slate" title="Gris Azulado"></div>
+                        <div class="theme-color-option" data-theme="indigo" title="Índigo"></div>
+                        <div class="theme-color-option" data-theme="pink" title="Rosa"></div>
+                        <div class="theme-color-option" data-theme="teal" title="Verde Azulado"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" type="button"
+                    data-bs-toggle="dropdown">
+                    @if (!string.IsNullOrEmpty(ViewBag.FotoPerfilBase64))
+                    {
+                        <div class="user-avatar-nav">
+                            <img src="data:image/jpeg;base64,@ViewBag.FotoPerfilBase64" alt="Foto de perfil" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="user-avatar-nav">
+                            @{
+                                var nombreCompleto = ViewBag.NombreUsuario?.ToString() ?? "Usuario";
+                                var palabras = nombreCompleto.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                                var iniciales = "";
+                                for (int i = 0; i < Math.Min(palabras.Length, 2); i++)
+                                {
+                                    if (palabras[i].Length > 0)
+                                    {
+                                        iniciales += palabras[i][0];
+                                    }
+                                }
+                            }
+                            <span>@iniciales</span>
+                        </div>
+                    }
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" asp-action="Perfil" asp-controller="Usuarios"><i
+                                class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configuración</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <form method="post" asp-action="Logout" asp-controller="Auth">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content Area - Se incluye desde el layout principal -->
+

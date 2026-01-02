@@ -1,17 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
+using Proyecto_alcaldia.Infrastructure.Data;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
-public class SubsecretariasController : Controller
+public class SubsecretariasController : BaseController
 {
     private readonly ISubsecretariaService _subsecretariaService;
     private readonly ILogger<SubsecretariasController> _logger;
 
     public SubsecretariasController(
         ISubsecretariaService subsecretariaService,
-        ILogger<SubsecretariasController> logger)
+        ILogger<SubsecretariasController> logger,
+        ApplicationDbContext context,
+        IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _subsecretariaService = subsecretariaService;
         _logger = logger;
