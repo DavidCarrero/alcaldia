@@ -114,20 +114,26 @@
     </li>
     <li class="menu-item">
         <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'planes-menu')">
-            <i class="menu-icon fas fa-shield-alt"></i>
+            <i class="menu-icon fas fa-file-alt"></i>
             <span class="menu-text">Planes</span>
         </a>
         <ul class="submenu" id="planes-menu">
             <li class="menu-item">
-                <a href="@Url.Action("Index", "Usuarios")" class="menu-link">
-                    <i class="menu-icon fas fa-users"></i>
-                    <span class="menu-text">Usuarios</span>
+                <a href="@Url.Action("Index", "PlanesNacionales")" class="menu-link">
+                    <i class="menu-icon fas fa-flag"></i>
+                    <span class="menu-text">Planes Nacionales</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="@Url.Action("Index", "Roles")" class="menu-link">
-                    <i class="menu-icon fas fa-user-tag"></i>
-                    <span class="menu-text">Roles</span>
+                <a href="@Url.Action("Index", "PlanesDepartamentales")" class="menu-link">
+                    <i class="menu-icon fas fa-map-marked-alt"></i>
+                    <span class="menu-text">Planes Departamentales</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="@Url.Action("Index", "PlanesMunicipales")" class="menu-link">
+                    <i class="menu-icon fas fa-city"></i>
+                    <span class="menu-text">Planes Municipales</span>
                 </a>
             </li>
         </ul>

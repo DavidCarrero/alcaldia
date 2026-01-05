@@ -1,0 +1,305 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.PlanNacionalViewModel>
+
+@{
+    ViewData["Title"] = "Planes Nacionales";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid" x-data="{ searchTerm: '' }">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Configuración", null),
+        ("Planes", null),
+        ("Planes Nacionales", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <header class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-flag"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Planes Nacionales</h2>
+            <p class="text-muted">Gestión de planes estratégicos a nivel nacional</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Plan Nacional
+            </a>
+        </div>
+    </header>
+
+    <!-- Tarjetas de Estadísticas -->
+    <section class="row g-4 mb-4" aria-label="Estadísticas de planes nacionales">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-file-alt fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Planes</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <small class="text-primary">Registrados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Activos</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count(p => p.Activo)</h3>
+                            <small class="text-success">En ejecución</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-calendar-alt fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Con Vigencia</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count(p => p.FechaInicio != null && p.FechaFin != null)</h3>
+                            <small class="text-info">Definida</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-sitemap fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Con Sector</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count(p => p.NombreSector != null)</h3>
+                            <small class="text-warning">Asignado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filtros de búsqueda -->
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" 
+                               name="searchTerm" 
+                               class="form-control border-start-0" 
+                               placeholder="Buscar por código, nombre o eje..." 
+                               value="@ViewData["SearchTerm"]">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Buscar
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-2"></i>Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Tabla de datos -->
+    <article class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Eje</th>
+                            <th>Sector</th>
+                            <th>Vigencia</th>
+                            <th>Estado</th>
+                            <th class="text-center" style="width: 150px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            @foreach (var plan in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@plan.Codigo</strong>
+                                    </td>
+                                    <td>
+                                        <div>@plan.Nombre</div>
+                                        @if (!string.IsNullOrEmpty(plan.Descripcion))
+                                        {
+                                            <small class="text-muted">@(plan.Descripcion.Length > 80 ? plan.Descripcion.Substring(0, 80) + "..." : plan.Descripcion)</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(plan.Eje))
+                                        {
+                                            <span class="badge bg-secondary">@plan.Eje</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin eje</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (plan.NombreSector != null)
+                                        {
+                                            <span>@plan.NombreSector</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin sector</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (plan.FechaInicio != null && plan.FechaFin != null)
+                                        {
+                                            <small>
+                                                @plan.FechaInicio.Value.ToString("dd/MM/yyyy")<br />
+                                                <i class="fas fa-arrow-down text-muted"></i><br />
+                                                @plan.FechaFin.Value.ToString("dd/MM/yyyy")
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin definir</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (plan.Activo)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Activo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times-circle me-1"></i>Inactivo
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Edit" 
+                                               asp-route-id="@plan.Id" 
+                                               class="btn btn-outline-primary"
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal"
+                                                    data-id="@plan.Id"
+                                                    data-nombre="@plan.Nombre"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">No se encontraron planes nacionales</p>
+                                    @if (!string.IsNullOrEmpty(ViewData["SearchTerm"]?.ToString()))
+                                    {
+                                        <p class="text-muted">
+                                            <a asp-action="Index" class="text-decoration-none">Limpiar búsqueda</a>
+                                        </p>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </article>
+</main>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de que desea eliminar el plan nacional <strong id="planNombre"></strong>?</p>
+                <p class="text-muted mb-0"><small>Esta acción no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const nombre = button.getAttribute('data-nombre');
+            
+            document.getElementById('planNombre').textContent = nombre;
+            document.getElementById('deleteForm').action = '@Url.Action("Delete", "PlanesNacionales")/' + id;
+        });
+    </script>
+}

@@ -1,0 +1,193 @@
+@model Proyecto_alcaldia.Application.ViewModels.PlanDepartamentalViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+    ViewData["Title"] = isEdit ? "Editar Plan Departamental" : "Nuevo Plan Departamental";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Configuración", null),
+        ("Planes", null),
+        ("Planes Departamentales", Url.Action("Index", "PlanesDepartamentales")),
+        (isEdit ? "Editar" : "Nuevo", null)
+    })
+
+    <section class="row justify-content-center">
+        <div class="col-lg-8">
+            <article class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-map-marked-alt me-2"></i>@(isEdit ? "Editar" : "Nuevo") Plan Departamental
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Errores de Validación</h5>
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    
+                    <form asp-action="@action" asp-controller="PlanesDepartamentales" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- Código -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Codigo)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Codigo, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Código del plan",
+                                    autocomplete = "off",
+                                    maxlength = "20"
+                                })
+                                @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Departamento -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-map-marked-alt me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Departamento)
+                                </label>
+                                @Html.TextBoxFor(model => model.Departamento, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre del departamento",
+                                    autocomplete = "off",
+                                    maxlength = "100"
+                                })
+                                @Html.ValidationMessageFor(model => model.Departamento, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-file-alt me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Nombre)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Nombre, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre del plan departamental",
+                                    autocomplete = "off",
+                                    maxlength = "200"
+                                })
+                                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                @Html.TextAreaFor(model => model.Descripcion, new { 
+                                    @class = "form-control", 
+                                    rows = "4",
+                                    placeholder = "Descripción del plan...",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Eje -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-project-diagram me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Eje)
+                                </label>
+                                @Html.TextBoxFor(model => model.Eje, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Eje estratégico",
+                                    autocomplete = "off",
+                                    maxlength = "100"
+                                })
+                                @Html.ValidationMessageFor(model => model.Eje, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Sector -->
+                            @{
+                                ViewData["fieldName"] = "SectorId";
+                                ViewData["label"] = "Sector";
+                                ViewData["options"] = ViewBag.Sectores;
+                                ViewData["selectedValue"] = Model?.SectorId?.ToString();
+                                ViewData["placeholder"] = "Seleccione un sector";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-sitemap";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Fecha Inicio -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    @Html.DisplayNameFor(model => model.FechaInicio)
+                                </label>
+                                @Html.TextBoxFor(model => model.FechaInicio, "{0:yyyy-MM-dd}", new { 
+                                    @class = "form-control", 
+                                    type = "date"
+                                })
+                                @Html.ValidationMessageFor(model => model.FechaInicio, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Fecha Fin -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-check me-2"></i>
+                                    @Html.DisplayNameFor(model => model.FechaFin)
+                                </label>
+                                @Html.TextBoxFor(model => model.FechaFin, "{0:yyyy-MM-dd}", new { 
+                                    @class = "form-control", 
+                                    type = "date"
+                                })
+                                @Html.ValidationMessageFor(model => model.FechaFin, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Activo -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input", @checked = Model?.Activo ?? true })
+                                    <label class="form-check-label" for="Activo">
+                                        <i class="fas fa-toggle-on me-2"></i>Plan Departamental Activo
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex gap-2 justify-content-end mt-4 pt-3 border-top">
+                            <a asp-action="Index" asp-controller="PlanesDepartamentales" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>@(isEdit ? "Actualizar" : "Guardar")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

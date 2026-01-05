@@ -41,9 +41,16 @@ public class ODSController : BaseController
         ViewBag.TotalODS = todosODS.Count();
         ViewBag.ODSActivos = todosODS.Count(o => o.Activo);
         ViewBag.ODSInactivos = todosODS.Count(o => !o.Activo);
+        
+        // KPIs válidos
+        var todasMetasODS = await _metaODSService.GetAllMetasODSAsync();
+        var totalMetas = todasMetasODS.Count();
+        var metasActivas = todasMetasODS.Count(m => m.Activo);
+        
+        ViewBag.TotalMetas = totalMetas;
+        ViewBag.MetasActivas = metasActivas;
         ViewBag.ImpactoAlto = todosODS.Count(o => o.NivelImpacto == "Alta");
         ViewBag.ImpactoMedio = todosODS.Count(o => o.NivelImpacto == "Media");
-        ViewBag.ImpactoBajo = todosODS.Count(o => o.NivelImpacto == "Baja");
 
         return View(ods);
     }
