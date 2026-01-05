@@ -5,14 +5,14 @@
     Layout = "_LayoutDashboard";
 }
 
-<div class="container-fluid" x-data="{ searchTerm: '' }">
+<main class="container-fluid" x-data="{ searchTerm: '' }">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("Estructura Organizacional", null),
         ("Subsecretarías", null)
     })
 
     <!-- Encabezado con Icono -->
-    <div class="page-header mb-4">
+    <header class="page-header mb-4">
         <div class="page-header-icon">
             <i class="fas fa-sitemap"></i>
         </div>
@@ -25,10 +25,10 @@
                 <i class="fas fa-plus me-2"></i>Nueva Subsecretaría
             </a>
         </div>
-    </div>
+    </header>
 
     <!-- Tarjetas de Estadísticas -->
-    <div class="row g-4 mb-4">
+    <section class="row g-4 mb-4" aria-label="Estadísticas de subsecretarías">
         <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -83,10 +83,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Tabla de Subsecretarías -->
-    <div class="card border-0 shadow-sm">
+    <section class="card border-0 shadow-sm" aria-label="Listado de subsecretarías">
         <div class="card-header bg-white py-3">
             <div class="row align-items-center">
                 <div class="col">
@@ -183,8 +183,8 @@
                 </table>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 @section Scripts {
     <style>

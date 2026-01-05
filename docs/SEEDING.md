@@ -16,18 +16,38 @@ Si **cualquiera** de estas tablas contiene datos, el script **NO se ejecutará**
 
 ## 📦 Datos Creados
 
-### 1. Alcaldía por Defecto
+### 1. Departamento por Defecto
+Se crea un departamento administrativo inicial:
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | `00` |
+| **Nombre** | `Departamento Administrativo` |
+| **Estado** | Activo |
+
+### 2. Municipio por Defecto
+Se crea un municipio administrativo inicial:
+
+| Campo | Valor |
+|-------|-------|
+| **Código** | `00000` |
+| **Nombre** | `Municipio Administrativo` |
+| **Estado** | Activo |
+
+### 3. Alcaldía por Defecto
 Se crea una alcaldía administrativa con los siguientes datos:
 
 | Campo | Valor |
 |-------|-------|
 | **NIT** | `000000000-0` |
+| **Municipio** | `Municipio Administrativo` |
+| **Departamento** | `Departamento Administrativo` |
 | **Correo Institucional** | `admin@alcaldia.gov.co` |
 | **Dirección** | `Dirección por defecto` |
 | **Teléfono** | `0000000` |
 | **Estado** | Activo |
 
-### 2. Rol Administrador
+### 4. Rol Administrador
 Se crea el rol de administrador con permisos totales:
 
 | Campo | Valor |
@@ -36,7 +56,7 @@ Se crea el rol de administrador con permisos totales:
 | **Descripción** | `Rol con acceso total al sistema` |
 | **Estado** | Activo |
 
-### 3. Usuario Administrador
+### 5. Usuario Administrador
 Se crea el usuario administrador del sistema:
 
 | Campo | Valor |
@@ -48,7 +68,7 @@ Se crea el usuario administrador del sistema:
 | **Estado** | Activo |
 | **Rol Asignado** | Administrador |
 
-### 4. Relación Usuario-Rol
+### 6. Relación Usuario-Rol
 Se establece automáticamente la relación entre el usuario y el rol administrador.
 
 ## 🔐 Seguridad
@@ -69,7 +89,10 @@ dotnet run
 
 ```
 Iniciando seeding de datos por defecto...
-✓ Alcaldía por defecto creada con ID: 1
+✓ Departamento por defecto creado con ID: 1
+✓ Municipio por defecto creado con ID: 1
+✓ Relación Departamento-Municipio establecida
+✓ Alcaldía por defecto creada con ID: 1 (Municipio: Municipio Administrativo, Departamento: Departamento Administrativo)
 ✓ Rol Administrador creado con ID: 1
 ✓ Usuario Administrador creado con ID: 1
   Usuario: admin
@@ -103,7 +126,10 @@ Program.cs (líneas de seeding automático)
 ### Primer Inicio del Sistema
 
 1. Al iniciar por primera vez, el sistema creará automáticamente:
-   - 1 Alcaldía administrativa
+   - 1 Departamento administrativo
+   - 1 Municipio administrativo
+   - Relación Departamento-Municipio
+   - 1 Alcaldía administrativa (asociada al departamento y municipio)
    - 1 Rol de Administrador
    - 1 Usuario Administrador
 
@@ -134,6 +160,9 @@ Si necesitas volver a ejecutar el script de seeding, debes:
    DELETE FROM usuarios;
    DELETE FROM roles;
    DELETE FROM alcaldias;
+   DELETE FROM municipio_departamentos;
+   DELETE FROM municipios;
+   DELETE FROM departamentos;
    ```
 
 2. O ejecutar un reset completo de la base de datos:
@@ -152,15 +181,24 @@ Si necesitas volver a ejecutar el script de seeding, debes:
 Puedes verificar que los datos se crearon correctamente con estas consultas SQL:
 
 ```sql
+-- Verificar departamentos y municipios
+SELECT d.id, d.codigo, d.nombre as departamento, m.nombre as municipio
+FROM departamentos d
+LEFT JOIN municipio_departamentos md ON d.id = md.departamento_id
+LEFT JOIN municipios m ON md.municipio_id = m.id;
+
+-- Verificar alcaldía con sus relaciones
+SELECT a.id, a.nit, a.direccion, a.correo_institucional,
+       m.nombre as municipio, d.nombre as departamento
+FROM alcaldias a
+LEFT JOIN municipios m ON a.municipio_id = m.id
+LEFT JOIN departamentos d ON a.departamento_id = d.id;
+
 -- Verificar usuario administrador
 SELECT u.id, u.nombre_usuario, u.nombre_completo, u.correo_electronico, r.nombre as rol 
 FROM usuarios u 
 INNER JOIN usuarios_roles ur ON u.id = ur.usuario_id 
 INNER JOIN roles r ON ur.rol_id = r.id;
-
--- Verificar alcaldía por defecto
-SELECT id, nit, direccion, correo_institucional 
-FROM alcaldias;
 
 -- Verificar roles
 SELECT id, nombre, descripcion 

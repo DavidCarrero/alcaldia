@@ -1,0 +1,224 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.MetaODSViewModel>
+
+@{
+    ViewData["Title"] = "Metas ODS";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid" x-data="{ searchTerm: ''}">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+    ("Configuración", null),
+        ("ODS", null),
+        ("Metas ODS", null)
+        })
+
+    <header class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-flag-checkered"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Metas ODS</h2>
+            <p class="text-muted">Configure las metas asociadas a los Objetivos de Desarrollo Sostenible (ODS)</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Nueva Meta ODS
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-building fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Metas ODS</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <small class="text-primary">Registradas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Metas ODS Activas</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count(a => a.Activo)</h3>
+                            <small class="text-success">En operación</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-map-marker-alt fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Metas</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <small class="text-info">Con ODS asociados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" x-model="searchTerm"
+                    placeholder="Buscar por Codigo, Nombre, Descripción...">
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de Metas ODS</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Alcaldía</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var meta in Model)
+                        {
+                            <tr x-show="searchTerm === '' || 
+                                           '@meta.Codigo'.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                           '@meta.Nombre'.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                           '@meta.Descripcion'.toLowerCase().includes(searchTerm.toLowerCase())" x-cloak>
+                                <td><span class="fw-bold">@meta.Codigo</span></td>
+                                <td>@meta.NitAlcaldia</td>
+                                <td>@meta.Nombre</td>
+                                <td>@meta.Descripcion</td>
+                                <td>
+                                    @if (meta.Activo)
+                                    {
+                                        <span class="badge bg-success">ACTIVO</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">INACTIVO</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@meta.Id" class="btn-action btn-edit"
+                                            title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn-action btn-delete"
+                                            onclick="confirmDelete('@Url.Action("Delete", "MetasODS", new { id = meta.Id })', '@meta.Codigo', '@Url.Action("Index", "MetasODS")')"
+                                            title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+
+        /* Icono de encabezado */
+        .alcaldia-icon-header {
+            background: linear-gradient(135deg, var(--theme-primary, #0d6efd) 0%, var(--theme-primary-hover, #0b5ed7) 100%);
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+        }
+
+        .alcaldia-icon-header i {
+            color: white !important;
+        }
+
+        /* Efectos de hover en las cards */
+        .card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Efecto en las filas de la tabla */
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--theme-primary-light, rgba(13, 110, 253, 0.05));
+            transform: scale(1.01);
+        }
+
+        /* Botones de acción */
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.15);
+        }
+
+        /* Animación del logo */
+        .table tbody tr td img,
+        .table tbody tr td .bg-secondary {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover td img,
+        .table tbody tr:hover td .bg-secondary {
+            transform: rotate(5deg) scale(1.1);
+        }
+    </style>
+}

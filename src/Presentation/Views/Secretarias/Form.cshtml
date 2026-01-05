@@ -7,16 +7,16 @@
     var action = isEdit ? "Edit" : "Create";
 }
 
-<div class="container-fluid">
+<main class="container-fluid">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("Estructura Organizacional", null),
         ("Secretarías", Url.Action("Index", "Secretarias")),
         (isEdit ? "Editar Secretaría" : "Nueva Secretaría", null)
     })
 
-    <div class="row justify-content-center">
+    <section class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
+            <article class="card border-0 shadow-sm">
                 <div class="card-header bg-primary text-white py-3">
                     <h4 class="mb-0">
                         <i class="fas @(isEdit ? "fa-edit" : "fa-building") me-2"></i>@(isEdit ? "Editar" : "Nueva") Secretaría
@@ -196,10 +196,10 @@
                         </div>
                     </form>
                 </div>
-            </div>
+            </article>
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

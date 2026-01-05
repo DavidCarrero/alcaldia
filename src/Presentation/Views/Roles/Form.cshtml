@@ -7,16 +7,16 @@
     Layout = "_LayoutDashboard";
 }
 
-<div class="container-fluid">
+<main class="container-fluid">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("Administración", null),
-        ("Roles de Usuario", Url.Action("Index", "Roles")),
-        (isEdit ? "Editar Rol" : "Crear Rol", null)
+        ("Roles", Url.Action("Index", "Roles")),
+        (isEdit ? "Editar Rol" : "Nuevo Rol", null)
     })
 
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card border-0 shadow-sm">
+    <section class="row justify-content-center">
+        <div class="col-lg-8">
+            <article class="card border-0 shadow-sm">
                 <div class="card-header bg-primary text-white py-3">
                     <h4 class="mb-0">
                         <i class="fas fa-user-shield me-2"></i>@(isEdit ? "Editar" : "Crear Nuevo") Rol
@@ -172,10 +172,10 @@
                         </div>
                     </form>
                 </div>
-            </div>
+            </article>
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

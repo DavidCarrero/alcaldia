@@ -5,14 +5,14 @@
     Layout = "_LayoutDashboard";
 }
 
-<div class="container-fluid" x-data="{ searchTerm: '' }">
+<main class="container-fluid" x-data="{ searchTerm: '' }">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("Configuración", null),
         ("ODS", null)
     })
 
     <!-- Encabezado con Icono -->
-    <div class="page-header mb-4">
+    <header class="page-header mb-4">
         <div class="page-header-icon">
             <i class="fas fa-globe"></i>
         </div>

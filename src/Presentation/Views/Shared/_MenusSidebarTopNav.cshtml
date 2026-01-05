@@ -44,64 +44,99 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="@Url.Action("Index", "ODS")" class="menu-link">
-                        <i class="menu-icon fas fa-globe"></i>
+                    <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'ods-menu')">
+                        <i class="menu-icon fas fa-bullseye"></i>
                         <span class="menu-text">ODS</span>
                     </a>
                 </li>
-            </ul>
+                <ul class="submenu" id="ods-menu">
+                    <li class="menu-item">
+                        <a href="@Url.Action("Index", "ODS")" class="menu-link">
+                            <i class="menu-icon fas fa-bullseye"></i>
+                            <span class="menu-text">ODS</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="@Url.Action("Index", "MetasODS")" class="menu-link">
+                            <i class="menu-icon fas fa-flag-checkered"></i>
+                            <span class="menu-text">Metas</span>
+                        </a>
+                </ul>
+
         </li>
-        <li class="menu-item">
-            <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'estructura-menu')">
-                <i class="menu-icon fas fa-sitemap"></i>
-                <span class="menu-text">Estructura</span>
-            </a>
-            <ul class="submenu" id="estructura-menu">
-                <li class="menu-item">
-                    <a href="@Url.Action("Index", "Secretarias")" class="menu-link">
-                        <i class="menu-icon fas fa-briefcase"></i>
-                        <span class="menu-text">Secretarías</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="@Url.Action("Index", "Subsecretarias")" class="menu-link">
-                        <i class="menu-icon fas fa-building"></i>
-                        <span class="menu-text">Subsecretarías</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="@Url.Action("Index", "Responsables")" class="menu-link">
-                        <i class="menu-icon fas fa-users"></i>
-                        <span class="menu-text">Responsables</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="menu-item">
-            <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'seguridad-menu')">
-                <i class="menu-icon fas fa-shield-alt"></i>
-                <span class="menu-text">Seguridad</span>
-            </a>
-            <ul class="submenu" id="seguridad-menu">
-                <li class="menu-item">
-                    <a href="@Url.Action("Index", "Usuarios")" class="menu-link">
-                        <i class="menu-icon fas fa-users"></i>
-                        <span class="menu-text">Usuarios</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="@Url.Action("Index", "Roles")" class="menu-link">
-                        <i class="menu-icon fas fa-user-tag"></i>
-                        <span class="menu-text">Roles</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
+    </ul>
+    </li>
+    <li class="menu-item">
+        <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'estructura-menu')">
+            <i class="menu-icon fas fa-sitemap"></i>
+            <span class="menu-text">Estructura</span>
+        </a>
+        <ul class="submenu" id="estructura-menu">
+            <li class="menu-item">
+                <a href="@Url.Action("Index", "Secretarias")" class="menu-link">
+                    <i class="menu-icon fas fa-briefcase"></i>
+                    <span class="menu-text">Secretarías</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="@Url.Action("Index", "Subsecretarias")" class="menu-link">
+                    <i class="menu-icon fas fa-building"></i>
+                    <span class="menu-text">Subsecretarías</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="@Url.Action("Index", "Responsables")" class="menu-link">
+                    <i class="menu-icon fas fa-users"></i>
+                    <span class="menu-text">Responsables</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="menu-item">
+        <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'seguridad-menu')">
+            <i class="menu-icon fas fa-shield-alt"></i>
+            <span class="menu-text">Seguridad</span>
+        </a>
+        <ul class="submenu" id="seguridad-menu">
+            <li class="menu-item">
+                <a href="@Url.Action("Index", "Usuarios")" class="menu-link">
+                    <i class="menu-icon fas fa-users"></i>
+                    <span class="menu-text">Usuarios</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="@Url.Action("Index", "Roles")" class="menu-link">
+                    <i class="menu-icon fas fa-user-tag"></i>
+                    <span class="menu-text">Roles</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="menu-item">
+        <a href="#" class="menu-link has-submenu" onclick="toggleSubmenu(event, 'planes-menu')">
+            <i class="menu-icon fas fa-shield-alt"></i>
+            <span class="menu-text">Planes</span>
+        </a>
+        <ul class="submenu" id="planes-menu">
+            <li class="menu-item">
+                <a href="@Url.Action("Index", "Usuarios")" class="menu-link">
+                    <i class="menu-icon fas fa-users"></i>
+                    <span class="menu-text">Usuarios</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="@Url.Action("Index", "Roles")" class="menu-link">
+                    <i class="menu-icon fas fa-user-tag"></i>
+                    <span class="menu-text">Roles</span>
+                </a>
+            </li>
+        </ul>
+    </li>
     </ul>
 </aside>
 
 <!-- Main Content -->
-<div class="main-content" id="mainContent">
+<main class="main-content" id="mainContent">
     <!-- Top Navbar -->
     <nav class="top-navbar">
         <button class="toggle-btn" onclick="toggleSidebar()">
@@ -186,4 +221,3 @@
     </nav>
 
     <!-- Content Area - Se incluye desde el layout principal -->
-

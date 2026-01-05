@@ -7,14 +7,14 @@
     var departamentos = Model.Select(m => m.NombreDepartamento).Distinct().Count();
 }
 
-<div class="container-fluid" x-data="{ searchTerm: '' }">
+<main class="container-fluid" x-data="{ searchTerm: '' }">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("División Territorial", null),
         ("Municipios", null)
     })
 
     <!-- Encabezado con Icono -->
-    <div class="page-header mb-4">
+    <header class="page-header mb-4">
         <div class="page-header-icon">
             <i class="fas fa-city"></i>
         </div>
@@ -175,7 +175,7 @@
             </div>
         </div>
     </div>
-</div>
+</main>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>

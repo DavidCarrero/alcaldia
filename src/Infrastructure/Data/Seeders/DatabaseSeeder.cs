@@ -21,13 +21,49 @@ public static class DatabaseSeeder
 
         Console.WriteLine("Iniciando seeding de datos por defecto...");
 
-        // 1. Crear Alcaldía por defecto
+        // 1. Crear Departamento por defecto
+        var departamentoAdmin = new Departamento
+        {
+            Codigo = "00",
+            Nombre = "Departamento Administrativo",
+            Activo = true,
+            FechaCreacion = DateTime.UtcNow,
+            FechaActualizacion = DateTime.UtcNow
+        };
+
+        context.Departamentos.Add(departamentoAdmin);
+        await context.SaveChangesAsync();
+
+        Console.WriteLine($"✓ Departamento por defecto creado con ID: {departamentoAdmin.Id}");
+
+        // 2. Crear Municipio por defecto
+        var municipioAdmin = new Municipio
+        {
+            Codigo = "00000",
+            Nombre = "Municipio Administrativo",
+            Activo = true,
+            FechaCreacion = DateTime.UtcNow,
+            FechaActualizacion = DateTime.UtcNow
+        };
+
+        context.Municipios.Add(municipioAdmin);
+        await context.SaveChangesAsync();
+
+        Console.WriteLine($"✓ Municipio por defecto creado con ID: {municipioAdmin.Id}");
+
+        // 3. Establecer relación muchos-a-muchos entre Departamento y Municipio
+        municipioAdmin.Departamentos.Add(departamentoAdmin);
+        await context.SaveChangesAsync();
+
+        Console.WriteLine($"✓ Relación Departamento-Municipio establecida");
+
+        // 4. Crear Alcaldía por defecto asociada al municipio y departamento
         var alcaldiaAdmin = new Alcaldia
         {
             Nit = "000000000-0",
             Logo = null,
-            MunicipioId = null,
-            DepartamentoId = null,
+            MunicipioId = municipioAdmin.Id,
+            DepartamentoId = departamentoAdmin.Id,
             Direccion = "Dirección por defecto",
             Telefono = "0000000",
             CorreoInstitucional = "admin@alcaldia.gov.co",
@@ -40,9 +76,9 @@ public static class DatabaseSeeder
         context.Alcaldias.Add(alcaldiaAdmin);
         await context.SaveChangesAsync();
 
-        Console.WriteLine($"✓ Alcaldía por defecto creada con ID: {alcaldiaAdmin.Id}");
+        Console.WriteLine($"✓ Alcaldía por defecto creada con ID: {alcaldiaAdmin.Id} (Municipio: {municipioAdmin.Nombre}, Departamento: {departamentoAdmin.Nombre})");
 
-        // 2. Crear Rol Administrador
+        // 5. Crear Rol Administrador
         var rolAdministrador = new Rol
         {
             Nombre = "Administrador",
@@ -57,7 +93,7 @@ public static class DatabaseSeeder
 
         Console.WriteLine($"✓ Rol Administrador creado con ID: {rolAdministrador.Id}");
 
-        // 3. Crear Usuario Administrador
+        // 6. Crear Usuario Administrador
         // Nota: En producción deberías usar un hash real de la contraseña
         var usuarioAdmin = new Usuario
         {
@@ -78,7 +114,7 @@ public static class DatabaseSeeder
         Console.WriteLine($"  Usuario: admin");
         Console.WriteLine($"  Contraseña: Admin123*");
 
-        // 4. Asignar rol al usuario
+        // 7. Asignar rol al usuario
         var usuarioRol = new UsuarioRol
         {
             UsuarioId = usuarioAdmin.Id,

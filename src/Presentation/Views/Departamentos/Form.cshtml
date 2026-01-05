@@ -7,16 +7,16 @@
     var action = isEdit ? "Edit" : "Create";
 }
 
-<div class="container-fluid">
+<main class="container-fluid">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
-        ("División Territorial", null),
+        ("Configuración", null),
         ("Departamentos", Url.Action("Index", "Departamentos")),
         (isEdit ? "Editar Departamento" : "Nuevo Departamento", null)
     })
 
-    <div class="row justify-content-center">
+    <section class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
+            <article class="card border-0 shadow-sm">
                 <div class="card-header bg-primary text-white py-3">
                     <h4 class="mb-0">
                         <i class="fas @(isEdit ? "fa-edit" : "fa-map-marked-alt") me-2"></i>@(isEdit ? "Editar" : "Nuevo") Departamento
@@ -100,10 +100,10 @@
                         </div>
                     }
                 </div>
-            </div>
+            </article>
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

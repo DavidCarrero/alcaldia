@@ -7,14 +7,14 @@
                     string.Join("", Model.NombreCompleto.Split(' ').Take(2).Select(n => n[0]));
 }
 
-<div class="container-fluid">
+<main class="container-fluid">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("Mi Cuenta", null),
         ("Perfil", null)
     })
 
     <!-- Encabezado -->
-    <div class="page-header mb-4">
+    <header class="page-header mb-4">
         <div class="page-header-icon">
             <i class="fas fa-user-circle"></i>
         </div>
@@ -22,7 +22,7 @@
             <h2>Perfil de Usuario</h2>
             <p class="text-muted">Información personal y configuración de cuenta</p>
         </div>
-    </div>
+    </header>
 
     <div class="row g-4">
         <!-- Columna Izquierda - Información del Usuario -->
@@ -349,7 +349,7 @@
             </div>
         </div>
     </div>
-</div>
+</main>
 
 <style>
     .avatar-lg {

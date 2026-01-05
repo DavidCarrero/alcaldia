@@ -5,14 +5,14 @@
     Layout = "_LayoutDashboard";
 }
 
-<div class="container-fluid" x-data="{ searchTerm: '' }">
+<main class="container-fluid" x-data="{ searchTerm: '' }">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("Configuración", null),
         ("Alcaldías", null)
     })
 
     <!-- Encabezado con Icono -->
-    <div class="page-header mb-4">
+    <header class="page-header mb-4">
         <div class="page-header-icon">
             <i class="fas fa-landmark"></i>
         </div>
@@ -25,10 +25,10 @@
                 <i class="fas fa-plus me-2"></i>Nueva Alcaldía
             </a>
         </div>
-    </div>
+    </header>
 
     <!-- Tarjetas de Estadísticas -->
-    <div class="row g-4 mb-4">
+    <section class="row g-4 mb-4" aria-label="Estadísticas de alcaldías">
         <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -85,10 +85,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Barra de Búsqueda -->
-    <div class="card border-0 shadow-sm mb-4">
+    <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de alcaldías">
         <div class="card-body">
             <div class="input-group">
                 <span class="input-group-text bg-light border-end-0">
@@ -99,10 +99,10 @@
                        placeholder="Buscar por NIT, municipio o departamento...">
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Tabla de Alcaldías -->
-    <div class="card border-0 shadow-sm">
+    <section class="card border-0 shadow-sm" aria-label="Listado de alcaldías">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 fw-bold">Listado de Alcaldías</h5>
         </div>
@@ -175,8 +175,8 @@
                 </table>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 @section Scripts {
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
