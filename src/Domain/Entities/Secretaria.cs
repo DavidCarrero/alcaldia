@@ -48,6 +48,6 @@ public class Secretaria : BaseEntity
     public decimal? PresupuestoAsignado { get; set; }
 
     // Relaciones
-    public ICollection<Subsecretaria> Subsecretarias { get; set; } = new List<Subsecretaria>();
+    public ICollection<SecretariaSubsecretaria> SecretariasSubsecretarias { get; set; } = new List<SecretariaSubsecretaria>();
     public ICollection<Responsable> Responsables { get; set; } = new List<Responsable>();
 }

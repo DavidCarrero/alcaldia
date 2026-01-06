@@ -8,7 +8,7 @@ public interface IMetaODSRepository
     Task<MetaODS?> GetByIdAsync(int id);
     Task<MetaODS> CreateAsync(MetaODS metaODS);
     Task UpdateAsync(MetaODS metaODS);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<MetaODS>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int alcaldiaId, int? excludeId = null);
     Task<int> CountActiveAsync();

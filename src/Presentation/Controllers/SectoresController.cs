@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -29,10 +30,62 @@ public class SectoresController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var sectores = await _sectorService.GetAllSectoresAsync(incluirInactivas: true);
-        return View(sectores);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Sectores
+            .Include(s => s.LineaEstrategica)
+            .Include(s => s.Programas)
+            .Where(s => !s.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(s => 
+                s.Codigo.ToLower().Contains(searchLower) || 
+                s.Nombre.ToLower().Contains(searchLower));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(s => s.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(s => new SectorViewModel
+            {
+                Id = s.Id,
+                Codigo = s.Codigo,
+                Nombre = s.Nombre,
+                Descripcion = s.Descripcion,
+                PresupuestoAsignado = s.PresupuestoAsignado,
+                Activo = s.Activo,
+                LineaEstrategicaId = s.LineaEstrategicaId,
+                NombreLineaEstrategica = s.LineaEstrategica != null ? s.LineaEstrategica.Nombre : "",
+                CantidadProgramas = s.Programas.Count(p => !p.IsDeleted)
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalSectores = await _context.Sectores.CountAsync(s => !s.IsDeleted);
+        ViewBag.SectoresActivos = await _context.Sectores.CountAsync(s => !s.IsDeleted && s.Activo);
+
+        return View(items);
     }
 
     [HttpGet]
@@ -182,6 +235,38 @@ public class SectoresController : BaseController
         {
             _logger.LogError(ex, "Error al buscar sectores");
             return Json(new List<object>());
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNextCodigo()
+    {
+        try
+        {
+            var maxId = await _context.Sectores
+                .MaxAsync(s => (int?)s.Id) ?? 0;
+            
+            return Json(new { nextCodigo = (maxId + 1).ToString() });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextCodigo = "1" });
+        }
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Sectores
+                .MaxAsync(s => (int?)s.Id) ?? 0;
+            
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

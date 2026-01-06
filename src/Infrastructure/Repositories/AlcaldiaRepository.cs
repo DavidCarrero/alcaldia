@@ -50,13 +50,18 @@ public class AlcaldiaRepository : IAlcaldiaRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var alcaldia = await GetByIdAsync(id);
+        var alcaldia = await _context.Alcaldias.FirstOrDefaultAsync(a => a.Id == id);
         if (alcaldia != null)
         {
+            // Soft delete
+            alcaldia.IsDeleted = true;
+            alcaldia.DeletedAt = DateTime.UtcNow;
+            alcaldia.DeletedBy = deletedBy;
             alcaldia.Activo = false;
-            await UpdateAsync(alcaldia);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

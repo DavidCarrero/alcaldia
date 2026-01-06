@@ -83,7 +83,7 @@ public class ProductoService : IProductoService
 
     public async Task DeleteProductoAsync(int id)
     {
-        await _productoRepository.DeleteAsync(id);
+        await _productoRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Producto desactivado: ID {id}");
     }
 

@@ -50,4 +50,12 @@ public class SubsecretariaViewModel
     public string? MunicipioAlcaldia { get; set; }
     public string? CodigoSecretaria { get; set; }
     public string? NombreSecretaria { get; set; }
+    
+    // Para la relación muchos a muchos con Secretarias
+    public List<int> SecretariasIds { get; set; } = new List<int>();
+    public List<string> SecretariasNombres { get; set; } = new List<string>();
+    
+    // Para la relación muchos a muchos con Responsables
+    public List<int> ResponsablesIds { get; set; } = new List<int>();
+    public List<string> ResponsablesNombres { get; set; } = new List<string>();
 }

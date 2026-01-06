@@ -23,33 +23,66 @@ public class ODSController : BaseController
         _metaODSService = metaODSService;
     }
 
-    public async Task<IActionResult> Index(string? searchTerm = null)
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        IEnumerable<ODSViewModel> ods;
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
 
+        // Construir query base
+        var query = _context.ODS
+            .Include(o => o.ODSMetasODS)
+            .Where(o => !o.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            ods = await _odsService.SearchODSAsync(searchTerm);
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(o => 
+                o.Codigo.ToLower().Contains(searchLower) || 
+                o.Nombre.ToLower().Contains(searchLower));
             ViewData["SearchTerm"] = searchTerm;
         }
-        else
-        {
-            ods = await _odsService.GetAllODSAsync();
-        }
 
-        // Estadísticas
-        var todosODS = await _odsService.GetAllODSAsync(incluirInactivos: true);
-        ViewBag.TotalODS = todosODS.Count();
-        ViewBag.ODSActivos = todosODS.Count(o => o.Activo);
-        ViewBag.ODSInactivos = todosODS.Count(o => !o.Activo);
+        // Ordenar
+        query = query.OrderBy(o => o.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(o => new ODSViewModel
+            {
+                Id = o.Id,
+                Codigo = o.Codigo,
+                Nombre = o.Nombre,
+                Descripcion = o.Descripcion,
+                FechaInicio = o.FechaInicio,
+                FechaFin = o.FechaFin,
+                Activo = o.Activo,
+                MetasODSIds = o.ODSMetasODS.Select(m => m.MetaODSId).ToList()
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas (del total, no de la página)
+        var totalODS = await _context.ODS.CountAsync(o => !o.IsDeleted);
+        var odsActivos = await _context.ODS.CountAsync(o => !o.IsDeleted && o.Activo);
+        var totalMetas = await _context.MetasODS.CountAsync(m => !m.IsDeleted);
         
-        // KPIs válidos
-        var todasMetasODS = await _metaODSService.GetAllMetasODSAsync();
-        var totalMetas = todasMetasODS.Count();
-        
+        ViewBag.TotalODS = totalODS;
+        ViewBag.ODSActivos = odsActivos;
+        ViewBag.ODSInactivos = totalODS - odsActivos;
         ViewBag.TotalMetas = totalMetas;
 
-        return View(ods);
+        return View(items);
     }
 
     public async Task<IActionResult> Create()
@@ -151,5 +184,37 @@ public class ODSController : BaseController
         // Cargar todas las metas ODS
         var metasODS = await _metaODSService.GetAllMetasODSAsync();
         ViewBag.MetasODS = metasODS.Select(m => new { Id = m.Id, Text = $"{m.Codigo} - {m.Nombre}" }).ToList();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNextCodigo()
+    {
+        try
+        {
+            var maxId = await _context.ODS
+                .MaxAsync(o => (int?)o.Id) ?? 0;
+            
+            return Json(new { success = true, codigo = (maxId + 1).ToString() });
+        }
+        catch (Exception)
+        {
+            return Json(new { success = true, codigo = "1" });
+        }
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.ODS
+                .MaxAsync(o => (int?)o.Id) ?? 0;
+            
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
+        }
     }
 }

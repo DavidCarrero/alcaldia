@@ -36,8 +36,8 @@ public class ODSService : IODSService
             Codigo = model.Codigo,
             Nombre = model.Nombre,
             Descripcion = model.Descripcion,
-            FechaInicio = model.FechaInicio,
-            FechaFin = model.FechaFin,
+            FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null,
+            FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null,
             Activo = model.Activo,
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
@@ -75,8 +75,8 @@ public class ODSService : IODSService
         ods.Codigo = model.Codigo;
         ods.Nombre = model.Nombre;
         ods.Descripcion = model.Descripcion;
-        ods.FechaInicio = model.FechaInicio;
-        ods.FechaFin = model.FechaFin;
+        ods.FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null;
+        ods.FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null;
         ods.Activo = model.Activo;
 
         await _unitOfWork.ODS.UpdateAsync(ods);
@@ -108,7 +108,7 @@ public class ODSService : IODSService
 
     public async Task DeleteODSAsync(int id)
     {
-        await _unitOfWork.ODS.DeleteAsync(id);
+        await _unitOfWork.ODS.DeleteAsync(id, "Sistema");
         await _unitOfWork.CompleteAsync();
         _logger.LogInformation($"ODS eliminado: {id}");
     }

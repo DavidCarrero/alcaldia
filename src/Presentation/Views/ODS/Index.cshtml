@@ -91,6 +91,7 @@
     <section class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -99,8 +100,10 @@
                            name="searchTerm" 
                            class="form-control border-start-0" 
                            placeholder="Buscar por código o nombre..."
-                           value="@ViewData["SearchTerm"]"
-                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                           value="@ViewData["SearchTerm"]">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>Buscar
+                    </button>
                 </div>
             </form>
         </div>
@@ -127,84 +130,91 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var ods in Model)
+                        @if (Model.Any())
                         {
-                            <tr x-show="searchTerm === '' || 
-                                       '@ods.Codigo'.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                       '@ods.Nombre'.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                       '@(ods.Descripcion ?? "")'.toLowerCase().includes(searchTerm.toLowerCase())" 
-                                x-cloak>
-                                <td><span class="fw-bold text-primary">@ods.Codigo</span></td>
-                                <td>@ods.Nombre</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(ods.Descripcion) && ods.Descripcion.Length > 50)
-                                    {
-                                        @ods.Descripcion.Substring(0, 50)<text>...</text>
-                                    }
-                                    else
-                                    {
-                                        @ods.Descripcion
-                                    }
-                                </td>
-                                <td>
-                                    <span class="badge bg-primary rounded-pill">
-                                        @ods.MetasODSIds.Count metas
-                                    </span>
-                                </td>
-                                <td>@(ods.FechaInicio?.ToString("dd/MM/yyyy") ?? "N/A")</td>
-                                <td>@(ods.FechaFin?.ToString("dd/MM/yyyy") ?? "N/A")</td>
-                                <td class="text-center">
-                                    @if (ods.Activo)
-                                    {
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check-circle me-1"></i>Activo
+                            @foreach (var ods in Model)
+                            {
+                                <tr>
+                                    <td><span class="fw-bold text-primary">@ods.Codigo</span></td>
+                                    <td>@ods.Nombre</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(ods.Descripcion) && ods.Descripcion.Length > 50)
+                                        {
+                                            @ods.Descripcion.Substring(0, 50)<text>...</text>
+                                        }
+                                        else
+                                        {
+                                            @ods.Descripcion
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary rounded-pill">
+                                            @ods.MetasODSIds.Count metas
                                         </span>
-                                    }
-                                    else
+                                    </td>
+                                    <td>@(ods.FechaInicio?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                    <td>@(ods.FechaFin?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                    <td class="text-center">
+                                        @if (ods.Activo)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Activo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times-circle me-1"></i>Inactivo
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a asp-action="Edit" asp-route-id="@ods.Id" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form asp-action="Delete" asp-route-id="@ods.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        title="Eliminar"
+                                                        onclick="return confirm('¿Está seguro de eliminar este ODS?');">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <i class="fas fa-globe fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span class="badge bg-secondary">
-                                            <i class="fas fa-times-circle me-1"></i>Inactivo
-                                        </span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2 justify-content-center">
-                                        <a asp-action="Edit" asp-route-id="@ods.Id" 
-                                           class="btn btn-sm btn-outline-primary" 
-                                           title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <p class="text-muted mb-3">No se encontraron ODS que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
                                         </a>
-                                        <form asp-action="Delete" asp-route-id="@ods.Id" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" 
-                                                    class="btn btn-sm btn-outline-danger" 
-                                                    title="Eliminar"
-                                                    onclick="return confirm('¿Está seguro de eliminar este ODS?');">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay ODS registrados. Comience creando un nuevo Objetivo de Desarrollo Sostenible.</p>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-
-            @if (!Model.Any())
-            {
-                <div class="text-center py-5">
-                    <i class="fas fa-globe fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No hay ODS registrados</h5>
-                    <p class="text-muted">Comience creando un nuevo Objetivo de Desarrollo Sostenible</p>
-                </div>
-            }
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </div>
-</div>
-
-<style>
-    [x-cloak] {
-        display: none !important;
-    }
-</style>
+</main>

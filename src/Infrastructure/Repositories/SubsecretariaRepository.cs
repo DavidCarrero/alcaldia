@@ -19,7 +19,11 @@ public class SubsecretariaRepository : ISubsecretariaRepository
         var query = _context.Subsecretarias
             .Include(s => s.Alcaldia)
                 .ThenInclude(a => a.Municipio)
-            .Include(s => s.Secretaria)
+            .Include(s => s.SecretariasSubsecretarias)
+                .ThenInclude(ss => ss.Secretaria)
+            .Include(s => s.SubsecretariasResponsables)
+                .ThenInclude(sr => sr.Responsable)
+            .Where(s => !s.IsDeleted)
             .AsQueryable();
 
         if (!incluirInactivos)
@@ -37,7 +41,11 @@ public class SubsecretariaRepository : ISubsecretariaRepository
         return await _context.Subsecretarias
             .Include(s => s.Alcaldia)
                 .ThenInclude(a => a.Municipio)
-            .Include(s => s.Secretaria)
+            .Include(s => s.SecretariasSubsecretarias)
+                .ThenInclude(ss => ss.Secretaria)
+            .Include(s => s.SubsecretariasResponsables)
+                .ThenInclude(sr => sr.Responsable)
+            .Where(s => !s.IsDeleted)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -56,13 +64,19 @@ public class SubsecretariaRepository : ISubsecretariaRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var subsecretaria = await _context.Subsecretarias.FindAsync(id);
+        var subsecretaria = await _context.Subsecretarias.FirstOrDefaultAsync(s => s.Id == id);
+            
         if (subsecretaria != null)
         {
+            // Soft delete
+            subsecretaria.IsDeleted = true;
+            subsecretaria.DeletedAt = DateTime.UtcNow;
+            subsecretaria.DeletedBy = deletedBy;
             subsecretaria.Activo = false;
             subsecretaria.FechaActualizacion = DateTime.UtcNow;
+            
             await _context.SaveChangesAsync();
         }
     }
@@ -76,8 +90,11 @@ public class SubsecretariaRepository : ISubsecretariaRepository
     {
         return await _context.Subsecretarias
             .Include(s => s.Alcaldia)
-            .Include(s => s.Secretaria)
-            .Where(s => s.SecretariaId == secretariaId && s.Activo)
+            .Include(s => s.SecretariasSubsecretarias)
+                .ThenInclude(ss => ss.Secretaria)
+            .Where(s => !s.IsDeleted && 
+                       s.SecretariasSubsecretarias.Any(ss => ss.SecretariaId == secretariaId && !ss.IsDeleted) && 
+                       s.Activo)
             .OrderBy(s => s.Nombre)
             .ToListAsync();
     }
@@ -85,8 +102,9 @@ public class SubsecretariaRepository : ISubsecretariaRepository
     public async Task<IEnumerable<Subsecretaria>> GetByAlcaldiaIdAsync(int alcaldiaId)
     {
         return await _context.Subsecretarias
-            .Include(s => s.Secretaria)
-            .Where(s => s.AlcaldiaId == alcaldiaId && s.Activo)
+            .Include(s => s.SecretariasSubsecretarias)
+                .ThenInclude(ss => ss.Secretaria)
+            .Where(s => !s.IsDeleted && s.AlcaldiaId == alcaldiaId && s.Activo)
             .OrderBy(s => s.Nombre)
             .ToListAsync();
     }
@@ -94,5 +112,18 @@ public class SubsecretariaRepository : ISubsecretariaRepository
     public async Task<int> GetTotalActivasAsync()
     {
         return await _context.Subsecretarias.CountAsync(s => s.Activo);
+    }
+
+    public async Task<IEnumerable<Subsecretaria>> SearchAsync(string searchTerm)
+    {
+        return await _context.Subsecretarias
+            .Include(s => s.Alcaldia)
+                .ThenInclude(a => a.Municipio)
+            .Include(s => s.SecretariasSubsecretarias)
+                .ThenInclude(ss => ss.Secretaria)
+            .Where(s => !s.IsDeleted && 
+                       (s.Nombre.Contains(searchTerm) || s.Codigo.Contains(searchTerm) ||
+                       (s.Descripcion != null && s.Descripcion.Contains(searchTerm))))
+            .ToListAsync();
     }
 }

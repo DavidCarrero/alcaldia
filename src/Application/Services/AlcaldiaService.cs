@@ -86,7 +86,7 @@ public class AlcaldiaService : IAlcaldiaService
 
     public async Task DeleteAlcaldiaAsync(int id)
     {
-        await _alcaldiaRepository.DeleteAsync(id);
+        await _alcaldiaRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Alcaldía desactivada: ID {id}");
     }
 

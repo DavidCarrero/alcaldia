@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -29,10 +30,61 @@ public class EvidenciasController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var evidencias = await _evidenciaService.GetAllEvidenciasAsync(incluirInactivas: true);
-        return View(evidencias);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Evidencias
+            .Include(e => e.Actividad)
+            .Include(e => e.Alcaldia)
+            .Where(e => !e.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(e => 
+                e.Codigo.ToLower().Contains(searchLower) || 
+                e.Nombre.ToLower().Contains(searchLower) ||
+                (e.Descripcion != null && e.Descripcion.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(e => e.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(e => new EvidenciaViewModel
+            {
+                Id = e.Id,
+                Codigo = e.Codigo,
+                Nombre = e.Nombre,
+                Descripcion = e.Descripcion,
+                ActividadId = e.ActividadId,
+                NombreActividad = e.Actividad != null ? e.Actividad.Nombre : "",
+                AlcaldiaId = e.AlcaldiaId
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalEvidencias = totalCount;
+        ViewBag.TotalConActividad = await _context.Evidencias.Where(e => !e.IsDeleted && e.ActividadId != null).CountAsync();
+
+        return View(items);
     }
 
     [HttpGet]
@@ -182,6 +234,26 @@ public class EvidenciasController : BaseController
         {
             _logger.LogError(ex, "Error al buscar evidencias");
             return Json(new List<object>());
+        }
+    }
+
+    // GET: Evidencias/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Evidencias
+                .Where(e => !e.IsDeleted)
+                .Select(e => e.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

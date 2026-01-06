@@ -8,7 +8,7 @@ public interface ISectorRepository
     Task<Sector?> GetByIdAsync(int id);
     Task<Sector> CreateAsync(Sector sector);
     Task UpdateAsync(Sector sector);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Sector>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<int> CountActiveAsync();

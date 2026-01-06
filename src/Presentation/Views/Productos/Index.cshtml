@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Productos";
     Layout = "_LayoutDashboard";
+    
+    // Obtener estadísticas desde ViewBag
+    var totalProductos = ViewBag.TotalProductos ?? ViewBag.TotalCount ?? Model.Count();
+    var presupuestoTotal = ViewBag.PresupuestoTotal ?? Model.Sum(p => p.PresupuestoAsignado ?? 0);
+    var indicadoresVinculados = ViewBag.IndicadoresVinculados ?? Model.Sum(p => (int?)p.CantidadIndicadores ?? 0);
 }
 
 <main class="container-fluid">
@@ -40,7 +45,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Productos</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@totalProductos</h3>
                             <small class="text-primary">Registrados</small>
                         </div>
                     </div>
@@ -59,7 +64,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Presupuesto Total</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Sum(p => p.PresupuestoAsignado ?? 0).ToString("C0")</h3>
+                            <h3 class="mb-0 fw-bold">@(((decimal)presupuestoTotal).ToString("C0"))</h3>
                             <small class="text-success">Asignado</small>
                         </div>
                     </div>
@@ -78,7 +83,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Indicadores Vinculados</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Sum(p => (int?)p.CantidadIndicadores ?? 0)</h3>
+                            <h3 class="mb-0 fw-bold">@indicadoresVinculados</h3>
                             <small class="text-info">Total indicadores</small>
                         </div>
                     </div>
@@ -91,6 +96,7 @@
     <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de productos">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -126,40 +132,66 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var producto in Model)
+                        @if (Model.Any())
+                        {
+                            @foreach (var producto in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@producto.Codigo</span></td>
+                                    <td><span class="fw-bold">@producto.Nombre</span></td>
+                                    <td>@producto.NombrePrograma</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(producto.Descripcion))
+                                        {
+                                            <span>@(producto.Descripcion.Length > 40 ? producto.Descripcion.Substring(0, 40) + "..." : producto.Descripcion)</span>
+                                        }
+                                    </td>
+                                    <td>@(producto.PresupuestoAsignado?.ToString("C0") ?? "-")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@(producto.CantidadIndicadores)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@producto.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete" 
+                                                    onclick="confirmDelete('@Url.Action("Delete", "Productos", new { id = producto.Id })', '@producto.Codigo', '@Url.Action("Index", "Productos")')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td><span class="badge bg-secondary">@producto.Codigo</span></td>
-                                <td><span class="fw-bold">@producto.Nombre</span></td>
-                                <td>@producto.NombrePrograma</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(producto.Descripcion))
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="fas fa-box-open fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span>@(producto.Descripcion.Length > 40 ? producto.Descripcion.Substring(0, 40) + "..." : producto.Descripcion)</span>
-                                    }
-                                </td>
-                                <td>@(producto.PresupuestoAsignado?.ToString("C0") ?? "-")</td>
-                                <td class="text-center">
-                                    <span class="badge bg-info">@(producto.CantidadIndicadores)</span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@producto.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <p class="text-muted mb-3">No se encontraron productos que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
                                         </a>
-                                        <button type="button" class="btn-action btn-delete" 
-                                                onclick="confirmDelete('@Url.Action("Delete", "Productos", new { id = producto.Id })', '@producto.Codigo', '@Url.Action("Index", "Productos")')"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay productos registrados. Comience creando un nuevo registro.</p>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </section>
 </main>

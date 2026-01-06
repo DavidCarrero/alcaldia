@@ -23,14 +23,36 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            @Html.ValidationSummary(false, "", new { @class = "mb-0 list-unstyled" })
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
                     <form asp-action="@action" asp-controller="Alcaldes" method="post" class="needs-validation" novalidate>
                         @Html.AntiForgeryToken()
                         @if (isEdit)
                         {
                             @Html.HiddenFor(m => m.Id)
                         }
+                        @Html.HiddenFor(m => m.AlcaldiaId)
                         
                         <div class="row g-3">
+                            <!-- Código -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-hashtag me-2"></i>
+                                    Código
+                                </label>
+                                @Html.TextBoxFor(model => model.Id, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Código"
+                                })
+                            </div>
+
                             <!-- Nombre Completo -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
@@ -173,4 +195,26 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            var isEdit = @(isEdit ? "true" : "false");
+            
+            // Solo autocompletar si es creación
+            if (!isEdit) {
+                $.ajax({
+                    url: '@Url.Action("GetNextId", "Alcaldes")',
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.nextId) {
+                            $('#Id').val(data.nextId);
+                        }
+                    },
+                    error: function() {
+                        console.log('Error al obtener siguiente ID');
+                    }
+                });
+            }
+        });
+    </script>
 }

@@ -4,7 +4,7 @@ namespace Proyecto_alcaldia.Application.Services;
 
 public interface IResponsableService : IBaseService<ResponsableViewModel>
 {
-    Task<IEnumerable<ResponsableViewModel>> GetBySecretariaIdAsync(int secretariaId);
     Task<IEnumerable<ResponsableViewModel>> GetByAlcaldiaIdAsync(int alcaldiaId);
     Task<Dictionary<string, int>> GetEstadisticasAsync();
+    Task<IEnumerable<ResponsableViewModel>> SearchAsync(string searchTerm);
 }

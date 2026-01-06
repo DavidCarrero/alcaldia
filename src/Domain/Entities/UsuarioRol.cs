@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Proyecto_alcaldia.Domain.Entities;
 
 [Table("usuarios_roles")]
-public class UsuarioRol
+public class UsuarioRol : BaseEntity
 {
     [Column("id")]
-    public int Id { get; set; }
+    public new int Id { get; set; }
 
     [Column("usuario_id")]
     public int UsuarioId { get; set; }
@@ -23,7 +23,4 @@ public class UsuarioRol
 
     [Column("fecha_asignacion")]
     public DateTime FechaAsignacion { get; set; } = DateTime.UtcNow;
-
-    [Column("activo")]
-    public bool Activo { get; set; } = true;
 }

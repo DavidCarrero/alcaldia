@@ -10,7 +10,7 @@ public interface IUsuarioRepository
     Task<Usuario?> GetByUsernameAsync(string username);
     Task<Usuario> CreateAsync(Usuario usuario);
     Task UpdateAsync(Usuario usuario);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<bool> EmailExistsAsync(string email, int? excludeUserId = null);
     Task<bool> UsernameExistsAsync(string username, int? excludeUserId = null);
     Task<IEnumerable<Usuario>> SearchAsync(string searchTerm);

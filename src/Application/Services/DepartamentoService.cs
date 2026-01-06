@@ -73,7 +73,7 @@ public class DepartamentoService : IDepartamentoService
 
     public async Task DeleteDepartamentoAsync(int id)
     {
-        await _departamentoRepository.DeleteAsync(id);
+        await _departamentoRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Departamento desactivado: ID {id}");
     }
 

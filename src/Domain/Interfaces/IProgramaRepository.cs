@@ -8,7 +8,7 @@ public interface IProgramaRepository
     Task<Programa?> GetByIdAsync(int id);
     Task<Programa> CreateAsync(Programa programa);
     Task UpdateAsync(Programa programa);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Programa>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<int> CountActiveAsync();

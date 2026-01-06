@@ -112,9 +112,9 @@ public class UsuarioService : IUsuarioService
         usuario.Activo = model.Activo;
 
         // Actualizar contraseña si se proporciona
-        if (!string.IsNullOrEmpty(model.NuevaContrasena))
+        if (!string.IsNullOrEmpty(model.Contrasena))
         {
-            usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(model.NuevaContrasena);
+            usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(model.Contrasena);
         }
 
         // Actualizar roles - eliminar todos los anteriores y agregar los nuevos
@@ -139,7 +139,7 @@ public class UsuarioService : IUsuarioService
 
     public async Task DeleteUsuarioAsync(int id)
     {
-        await _usuarioRepository.DeleteAsync(id);
+        await _usuarioRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Usuario desactivado: ID {id}");
     }
 

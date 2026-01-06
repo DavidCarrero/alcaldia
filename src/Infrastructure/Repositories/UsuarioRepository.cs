@@ -17,6 +17,7 @@ public class UsuarioRepository : IUsuarioRepository
     public async Task<IEnumerable<Usuario>> GetAllAsync(bool incluirInactivos = false)
     {
         var query = _context.Usuarios
+            .Where(u => !u.IsDeleted)
             .Include(u => u.UsuariosRoles)
                 .ThenInclude(ur => ur.Rol)
             .AsQueryable();
@@ -67,13 +68,19 @@ public class UsuarioRepository : IUsuarioRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var usuario = await GetByIdAsync(id);
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
         if (usuario != null)
         {
+            // Soft delete
+            usuario.IsDeleted = true;
+            usuario.DeletedAt = DateTime.UtcNow;
+            usuario.DeletedBy = deletedBy;
             usuario.Activo = false;
-            await UpdateAsync(usuario);
+            usuario.FechaActualizacion = DateTime.UtcNow;
+            
+            await _context.SaveChangesAsync();
         }
     }
 

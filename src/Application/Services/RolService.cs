@@ -74,7 +74,7 @@ public class RolService : IRolService
 
     public async Task DeleteRolAsync(int id)
     {
-        await _rolRepository.DeleteAsync(id);
+        await _rolRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Rol desactivado: ID {id}");
     }
 

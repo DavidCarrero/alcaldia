@@ -44,8 +44,8 @@ public class PlanNacionalService : IPlanNacionalService
             Descripcion = model.Descripcion,
             Eje = model.Eje,
             SectorId = model.SectorId,
-            FechaInicio = model.FechaInicio,
-            FechaFin = model.FechaFin,
+            FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null,
+            FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null,
             Activo = model.Activo,
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
@@ -76,8 +76,8 @@ public class PlanNacionalService : IPlanNacionalService
         planNacional.Descripcion = model.Descripcion;
         planNacional.Eje = model.Eje;
         planNacional.SectorId = model.SectorId;
-        planNacional.FechaInicio = model.FechaInicio;
-        planNacional.FechaFin = model.FechaFin;
+        planNacional.FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null;
+        planNacional.FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null;
         planNacional.Activo = model.Activo;
         planNacional.FechaActualizacion = DateTime.UtcNow;
 
@@ -87,7 +87,7 @@ public class PlanNacionalService : IPlanNacionalService
 
     public async Task DeletePlanNacionalAsync(int id)
     {
-        await _planNacionalRepository.DeleteAsync(id);
+        await _planNacionalRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Plan nacional desactivado: ID {id}");
     }
 

@@ -47,8 +47,8 @@ public class ProyectoService : IProyectoService
             PresupuestoEjecutado = model.PresupuestoEjecutado,
             ValorProyecto = model.ValorProyecto,
             ResponsableId = model.ResponsableId,
-            FechaInicio = model.FechaInicio,
-            FechaFin = model.FechaFin,
+            FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null,
+            FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null,
             EstadoProyecto = model.EstadoProyecto,
             PorcentajeAvance = model.PorcentajeAvance,
             Activo = model.Activo,
@@ -84,8 +84,8 @@ public class ProyectoService : IProyectoService
         proyecto.PresupuestoEjecutado = model.PresupuestoEjecutado;
         proyecto.ValorProyecto = model.ValorProyecto;
         proyecto.ResponsableId = model.ResponsableId;
-        proyecto.FechaInicio = model.FechaInicio;
-        proyecto.FechaFin = model.FechaFin;
+        proyecto.FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null;
+        proyecto.FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null;
         proyecto.EstadoProyecto = model.EstadoProyecto;
         proyecto.PorcentajeAvance = model.PorcentajeAvance;
         proyecto.Activo = model.Activo;
@@ -97,7 +97,7 @@ public class ProyectoService : IProyectoService
 
     public async Task DeleteProyectoAsync(int id)
     {
-        await _proyectoRepository.DeleteAsync(id);
+        await _proyectoRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Proyecto desactivado: ID {id}");
     }
 

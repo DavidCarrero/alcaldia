@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -29,10 +30,61 @@ public class ProductosController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var productos = await _productoService.GetAllProductosAsync(incluirInactivas: true);
-        return View(productos);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Productos
+            .Include(p => p.Programa)
+            .Include(p => p.Alcaldia)
+            .Where(p => !p.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(p => 
+                p.Codigo.ToLower().Contains(searchLower) || 
+                p.Nombre.ToLower().Contains(searchLower) ||
+                (p.Descripcion != null && p.Descripcion.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(p => p.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new ProductoViewModel
+            {
+                Id = p.Id,
+                Codigo = p.Codigo,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                ProgramaId = p.ProgramaId,
+                NombrePrograma = p.Programa != null ? p.Programa.Nombre : "",
+                AlcaldiaId = p.AlcaldiaId
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalProductos = totalCount;
+        ViewBag.TotalConPrograma = await _context.Productos.Where(p => !p.IsDeleted && p.ProgramaId != null).CountAsync();
+
+        return View(items);
     }
 
     [HttpGet]
@@ -182,6 +234,26 @@ public class ProductosController : BaseController
         {
             _logger.LogError(ex, "Error al buscar productos");
             return Json(new List<object>());
+        }
+    }
+
+    // GET: Productos/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Productos
+                .Where(p => !p.IsDeleted)
+                .Select(p => p.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

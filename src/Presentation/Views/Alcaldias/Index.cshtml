@@ -3,6 +3,10 @@
 @{
     ViewData["Title"] = "Alcaldías";
     Layout = "_LayoutDashboard";
+    
+    // Obtener estadísticas desde ViewBag
+    var totalAlcaldias = ViewBag.TotalAlcaldias ?? ViewBag.TotalCount ?? Model.Count();
+    var alcaldiasActivas = ViewBag.AlcaldiasActivas ?? Model.Count(a => a.Activo);
 }
 
 <main class="container-fluid">
@@ -40,7 +44,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Alcaldías</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@totalAlcaldias</h3>
                             <small class="text-primary">Registradas</small>
                         </div>
                     </div>
@@ -59,7 +63,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Alcaldías Activas</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count(a => a.Activo)</h3>
+                            <h3 class="mb-0 fw-bold">@alcaldiasActivas</h3>
                             <small class="text-success">En operación</small>
                         </div>
                     </div>
@@ -78,7 +82,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Municipios</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@totalAlcaldias</h3>
                             <small class="text-info">Con alcaldía</small>
                         </div>
                     </div>
@@ -91,6 +95,7 @@
     <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de alcaldías">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -127,54 +132,80 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var alcaldia in Model)
+                        @if (Model.Any())
+                        {
+                            @foreach (var alcaldia in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(alcaldia.Logo))
+                                        {
+                                            <img src="@alcaldia.Logo" alt="Logo" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-building"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td><span class="fw-bold">@alcaldia.Nit</span></td>
+                                    <td>@alcaldia.NombreMunicipio</td>
+                                    <td>@alcaldia.NombreDepartamento</td>
+                                    <td>@alcaldia.Telefono</td>
+                                    <td>@alcaldia.CorreoInstitucional</td>
+                                    <td>
+                                        @if (alcaldia.Activo)
+                                        {
+                                            <span class="badge bg-success">ACTIVO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">INACTIVO</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@alcaldia.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete" 
+                                                    onclick="confirmDelete('@Url.Action("Delete", "Alcaldias", new { id = alcaldia.Id })', '@alcaldia.Nit', '@Url.Action("Index", "Alcaldias")')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(alcaldia.Logo))
+                                <td colspan="8" class="text-center py-5">
+                                    <i class="fas fa-landmark fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <img src="@alcaldia.Logo" alt="Logo" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
-                                    }
-                                    else
-                                    {
-                                        <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
-                                            <i class="fas fa-building"></i>
-                                        </div>
-                                    }
-                                </td>
-                                <td><span class="fw-bold">@alcaldia.Nit</span></td>
-                                <td>@alcaldia.NombreMunicipio</td>
-                                <td>@alcaldia.NombreDepartamento</td>
-                                <td>@alcaldia.Telefono</td>
-                                <td>@alcaldia.CorreoInstitucional</td>
-                                <td>
-                                    @if (alcaldia.Activo)
-                                    {
-                                        <span class="badge bg-success">ACTIVO</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">INACTIVO</span>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@alcaldia.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <p class="text-muted mb-3">No se encontraron alcaldías que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
                                         </a>
-                                        <button type="button" class="btn-action btn-delete" 
-                                                onclick="confirmDelete('@Url.Action("Delete", "Alcaldias", new { id = alcaldia.Id })', '@alcaldia.Nit', '@Url.Action("Index", "Alcaldias")')"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay alcaldías registradas. Comience creando un nuevo registro.</p>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </section>
 </main>

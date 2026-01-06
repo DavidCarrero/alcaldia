@@ -50,13 +50,19 @@ public class EvidenciaRepository : IEvidenciaRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var evidencia = await GetByIdAsync(id);
+        var evidencia = await _context.Evidencias.FirstOrDefaultAsync(e => e.Id == id);
+            
         if (evidencia != null)
         {
+            // Soft delete
+            evidencia.IsDeleted = true;
+            evidencia.DeletedAt = DateTime.UtcNow;
+            evidencia.DeletedBy = deletedBy;
             evidencia.Activo = false;
-            await UpdateAsync(evidencia);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

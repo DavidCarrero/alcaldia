@@ -72,7 +72,7 @@ public class MetaODSService : IMetaODSService
 
     public async Task DeleteMetaODSAsync(int id)
     {
-        await _metaODSRepository.DeleteAsync(id);
+        await _metaODSRepository.DeleteAsync(id, "Sistema");
     }
 
     public async Task<IEnumerable<MetaODSViewModel>> SearchMetasODSAsync(string searchTerm)

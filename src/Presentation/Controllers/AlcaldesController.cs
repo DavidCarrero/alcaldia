@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -21,18 +22,68 @@ public class AlcaldesController : BaseController
     }
 
     // GET: Alcaldes
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
         try
         {
-            var alcaldes = await _alcaldeService.GetAllAsync(incluirInactivos: true);
-            var estadisticas = await _alcaldeService.GetEstadisticasAsync();
+            // Validar parámetros de paginación
+            (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
 
+            // Construir query base
+            var query = _context.Alcaldes
+                .Include(a => a.Alcaldia)
+                .Include(a => a.AlcaldesVigencias)
+                .ThenInclude(av => av.Vigencia)
+                .Where(a => !a.IsDeleted)
+                .AsQueryable();
+
+            // Aplicar búsqueda
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var searchLower = searchTerm.ToLower();
+                query = query.Where(a => 
+                    a.NombreCompleto.ToLower().Contains(searchLower) || 
+                    a.NumeroDocumento.ToLower().Contains(searchLower) ||
+                    (a.PartidoPolitico != null && a.PartidoPolitico.ToLower().Contains(searchLower)));
+                ViewData["SearchTerm"] = searchTerm;
+            }
+
+            // Ordenar
+            query = query.OrderByDescending(a => a.Id);
+
+            // Contar total
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Min(page, Math.Max(1, totalPages));
+
+            // Aplicar paginación
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(a => new AlcaldeViewModel
+                {
+                    Id = a.Id,
+                    NombreCompleto = a.NombreCompleto,
+                    NumeroDocumento = a.NumeroDocumento,
+                    PartidoPolitico = a.PartidoPolitico,
+                    PeriodoInicio = a.PeriodoInicio,
+                    PeriodoFin = a.PeriodoFin,
+                    Activo = a.Activo,
+                    AlcaldiaId = a.AlcaldiaId,
+                    NitAlcaldia = a.Alcaldia != null ? a.Alcaldia.Nit : ""
+                })
+                .ToListAsync();
+
+            // Configurar paginación
+            ConfigurarPaginacion(page, pageSize, totalCount);
+
+            // Estadísticas
+            var estadisticas = await _alcaldeService.GetEstadisticasAsync();
             ViewBag.TotalActivos = estadisticas["TotalActivos"];
             ViewBag.EnPeriodo = estadisticas["EnPeriodo"];
             ViewBag.Partidos = estadisticas["Partidos"];
 
-            return View(alcaldes);
+            return View(items);
         }
         catch (Exception ex)
         {
@@ -68,6 +119,7 @@ public class AlcaldesController : BaseController
             // Validar que el usuario tenga una alcaldía asignada
             if (!ValidarAlcaldiaId())
             {
+                TempData["Error"] = "No tiene una alcaldía asignada.";
                 return View("Form", viewModel);
             }
 
@@ -81,7 +133,8 @@ public class AlcaldesController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al crear el alcalde");
-            TempData["Error"] = "Error al crear el alcalde. Por favor, intente nuevamente.";
+            var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
+            ModelState.AddModelError("", mensajeError);
             return View("Form", viewModel);
         }
     }
@@ -133,7 +186,8 @@ public class AlcaldesController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al actualizar el alcalde con ID {Id}", id);
-            TempData["Error"] = "Error al actualizar el alcalde. Por favor, intente nuevamente.";
+            var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
+            ModelState.AddModelError("", mensajeError);
             return View("Form", viewModel);
         }
     }
@@ -151,13 +205,34 @@ public class AlcaldesController : BaseController
                 return Json(new { success = false, message = "El alcalde no fue encontrado." });
             }
 
-            await _alcaldeService.DeleteAsync(id);
+            var deletedBy = await ObtenerUsuarioIdActual();
+            await _alcaldeService.DeleteAsync(id, deletedBy);
             return Json(new { success = true, message = $"El alcalde '{alcalde.NombreCompleto}' ha sido eliminado exitosamente." });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al eliminar el alcalde con ID {Id}", id);
             return Json(new { success = false, message = "Error al eliminar el alcalde." });
+        }
+    }
+
+    // GET: Alcaldes/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Alcaldes
+                .Where(a => !a.IsDeleted)
+                .Select(a => a.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

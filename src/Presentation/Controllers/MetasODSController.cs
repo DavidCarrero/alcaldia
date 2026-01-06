@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -26,10 +27,64 @@ public class MetasODSController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var metasODS = await _metasODSService.GetAllMetasODSAsync(incluirInactivas: true);
-        return View(metasODS);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.MetasODS
+            .Include(m => m.ODSMetasODS)
+            .ThenInclude(om => om.ODS)
+            .Include(m => m.Alcaldia)
+            .Where(m => !m.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(m => 
+                m.Codigo.ToLower().Contains(searchLower) || 
+                m.Nombre.ToLower().Contains(searchLower) ||
+                (m.Descripcion != null && m.Descripcion.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(m => m.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(m => new MetaODSViewModel
+            {
+                Id = m.Id,
+                Codigo = m.Codigo,
+                Nombre = m.Nombre,
+                Descripcion = m.Descripcion,
+                AlcaldiaId = m.AlcaldiaId,
+                NitAlcaldia = m.Alcaldia != null ? m.Alcaldia.Nit : "",
+                CantidadODS = m.ODSMetasODS.Count
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        var totalMetasODS = await _context.MetasODS.CountAsync(m => !m.IsDeleted);
+        var totalConODS = await _context.MetasODS.Where(m => !m.IsDeleted && m.ODSMetasODS.Any()).CountAsync();
+        ViewBag.TotalMetasODS = totalMetasODS;
+        ViewBag.TotalConODS = totalConODS;
+
+        return View(items);
     }
 
     [HttpGet]
@@ -195,5 +250,37 @@ public class MetasODSController : BaseController
     {
         var exists = await _metasODSService.CodigoExistsAsync(codigo, alcaldiaId, id);
         return Json(!exists);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNextCodigo()
+    {
+        try
+        {
+            var maxId = await _context.MetasODS
+                .MaxAsync(m => (int?)m.Id) ?? 0;
+            
+            return Json(new { nextCodigo = (maxId + 1).ToString() });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextCodigo = "1" });
+        }
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.MetasODS
+                .MaxAsync(m => (int?)m.Id) ?? 0;
+            
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
+        }
     }
 }

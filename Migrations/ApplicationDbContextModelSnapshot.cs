@@ -46,6 +46,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -78,6 +84,9 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<DateTime?>("FechaInicioReal")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio_real");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<decimal?>("MetaPlaneada")
                         .HasColumnType("numeric(18,2)")
@@ -161,6 +170,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("correo_electronico");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
 
@@ -168,6 +183,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
@@ -226,18 +244,34 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<bool>("Activo")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("activo");
+                        .HasDefaultValue(true);
 
                     b.Property<int>("AlcaldeId")
                         .HasColumnType("integer")
                         .HasColumnName("alcalde_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaAsignacion")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_asignacion")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("VigenciaId")
                         .HasColumnType("integer")
@@ -277,6 +311,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("correo_institucional");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<int?>("DepartamentoId")
                         .HasColumnType("integer")
                         .HasColumnName("departamento_id");
@@ -293,6 +333,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Logo")
                         .HasMaxLength(200)
@@ -346,6 +389,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
 
@@ -353,6 +402,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -396,6 +448,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -416,6 +474,9 @@ namespace Proyecto_alcaldia.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("hash_archivo");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -498,6 +559,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -509,6 +576,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<decimal?>("LineaBase")
                         .HasColumnType("numeric(18,2)")
@@ -573,6 +643,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -584,6 +660,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -632,6 +711,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -643,6 +728,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -678,6 +766,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
 
@@ -685,6 +779,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -724,6 +821,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -744,6 +847,9 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -760,13 +866,26 @@ namespace Proyecto_alcaldia.Migrations
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.ODSMetaODS", b =>
                 {
-                    b.Property<int>("ODSId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("ods_id");
+                        .HasColumnName("id");
 
-                    b.Property<int>("MetaODSId")
-                        .HasColumnType("integer")
-                        .HasColumnName("meta_ods_id");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaAsociacion")
                         .ValueGeneratedOnAdd()
@@ -774,9 +893,28 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnName("fecha_asociacion")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.HasKey("ODSId", "MetaODSId");
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MetaODSId")
+                        .HasColumnType("integer")
+                        .HasColumnName("meta_ods_id");
+
+                    b.Property<int>("ODSId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ods_id");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("MetaODSId");
+
+                    b.HasIndex("ODSId", "MetaODSId")
+                        .IsUnique();
 
                     b.ToTable("ods_metas_ods");
                 });
@@ -804,6 +942,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
 
                     b.Property<string>("Departamento")
                         .HasMaxLength(100)
@@ -834,6 +978,9 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<DateTime?>("FechaInicio")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -883,6 +1030,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -902,6 +1055,9 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<DateTime?>("FechaInicio")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<int?>("MunicipioId")
                         .HasColumnType("integer")
@@ -961,6 +1117,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -985,6 +1147,9 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<DateTime?>("FechaInicio")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -1030,6 +1195,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -1041,6 +1212,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -1090,6 +1264,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -1101,6 +1281,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("MetaResultado")
                         .HasMaxLength(100)
@@ -1171,6 +1354,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("numeric(18,0)")
                         .HasColumnName("codigo_bpin");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -1194,6 +1383,9 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<DateTime?>("FechaInicio")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -1249,6 +1441,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("alcaldia_id");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
 
@@ -1260,6 +1458,9 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<int>("IndicadorId")
                         .HasColumnType("integer")
                         .HasColumnName("indicador_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<decimal?>("PorcentajeAvance")
                         .HasColumnType("numeric(5,2)")
@@ -1304,6 +1505,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("cargo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Email")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
@@ -1316,6 +1523,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
@@ -1330,8 +1540,7 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnName("numero_identificacion");
 
                     b.Property<int?>("SecretariaId")
-                        .HasColumnType("integer")
-                        .HasColumnName("secretaria_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Telefono")
                         .HasMaxLength(50)
@@ -1375,6 +1584,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("activo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -1387,6 +1602,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -1428,6 +1646,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("correo_institucional");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -1439,6 +1663,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -1468,9 +1695,59 @@ namespace Proyecto_alcaldia.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AlcaldiaId", "Codigo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("secretarias");
+                });
+
+            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.SecretariaSubsecretaria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("SecretariaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("secretaria_id");
+
+                    b.Property<int>("SubsecretariaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("subsecretaria_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubsecretariaId");
+
+                    b.HasIndex("SecretariaId", "SubsecretariaId")
+                        .IsUnique();
+
+                    b.ToTable("secretarias_subsecretarias");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Sector", b =>
@@ -1501,6 +1778,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -1512,6 +1795,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<int?>("LineaEstrategicaId")
                         .HasColumnType("integer")
@@ -1566,6 +1852,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("correo_institucional");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
@@ -1577,6 +1869,9 @@ namespace Proyecto_alcaldia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -1593,10 +1888,6 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("responsable");
 
-                    b.Property<int?>("SecretariaId")
-                        .HasColumnType("integer")
-                        .HasColumnName("secretaria_id");
-
                     b.Property<string>("Telefono")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
@@ -1604,12 +1895,60 @@ namespace Proyecto_alcaldia.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SecretariaId");
-
                     b.HasIndex("AlcaldiaId", "Codigo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("subsecretarias");
+                });
+
+            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.SubsecretariaResponsable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ResponsableId")
+                        .HasColumnType("integer")
+                        .HasColumnName("responsable_id");
+
+                    b.Property<int>("SubsecretariaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("subsecretaria_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ResponsableId");
+
+                    b.HasIndex("SubsecretariaId", "ResponsableId")
+                        .IsUnique();
+
+                    b.ToTable("subsecretarias_responsables");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Usuario", b =>
@@ -1643,6 +1982,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("correo_electronico");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
 
@@ -1654,6 +1999,9 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<string>("FotoPerfilEncriptada")
                         .HasColumnType("text")
                         .HasColumnName("foto_perfil_encriptada");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
@@ -1700,14 +2048,28 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<bool>("Activo")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("activo");
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaAsignacion")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_asignacion")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("RolId")
                         .HasColumnType("integer")
@@ -1755,6 +2117,12 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("codigo");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -1775,6 +2143,9 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<DateTime?>("FechaInicio")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -2162,14 +2533,11 @@ namespace Proyecto_alcaldia.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Proyecto_alcaldia.Domain.Entities.Secretaria", "Secretaria")
+                    b.HasOne("Proyecto_alcaldia.Domain.Entities.Secretaria", null)
                         .WithMany("Responsables")
-                        .HasForeignKey("SecretariaId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("SecretariaId");
 
                     b.Navigation("Alcaldia");
-
-                    b.Navigation("Secretaria");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Secretaria", b =>
@@ -2181,6 +2549,25 @@ namespace Proyecto_alcaldia.Migrations
                         .IsRequired();
 
                     b.Navigation("Alcaldia");
+                });
+
+            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.SecretariaSubsecretaria", b =>
+                {
+                    b.HasOne("Proyecto_alcaldia.Domain.Entities.Secretaria", "Secretaria")
+                        .WithMany("SecretariasSubsecretarias")
+                        .HasForeignKey("SecretariaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Proyecto_alcaldia.Domain.Entities.Subsecretaria", "Subsecretaria")
+                        .WithMany("SecretariasSubsecretarias")
+                        .HasForeignKey("SubsecretariaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Secretaria");
+
+                    b.Navigation("Subsecretaria");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Sector", b =>
@@ -2209,14 +2596,26 @@ namespace Proyecto_alcaldia.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Proyecto_alcaldia.Domain.Entities.Secretaria", "Secretaria")
-                        .WithMany("Subsecretarias")
-                        .HasForeignKey("SecretariaId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Alcaldia");
+                });
 
-                    b.Navigation("Secretaria");
+            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.SubsecretariaResponsable", b =>
+                {
+                    b.HasOne("Proyecto_alcaldia.Domain.Entities.Responsable", "Responsable")
+                        .WithMany("SubsecretariasResponsables")
+                        .HasForeignKey("ResponsableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Proyecto_alcaldia.Domain.Entities.Subsecretaria", "Subsecretaria")
+                        .WithMany("SubsecretariasResponsables")
+                        .HasForeignKey("SubsecretariaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Responsable");
+
+                    b.Navigation("Subsecretaria");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Usuario", b =>
@@ -2360,6 +2759,11 @@ namespace Proyecto_alcaldia.Migrations
                     b.Navigation("ProyectosIndicadores");
                 });
 
+            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Responsable", b =>
+                {
+                    b.Navigation("SubsecretariasResponsables");
+                });
+
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Rol", b =>
                 {
                     b.Navigation("UsuariosRoles");
@@ -2369,7 +2773,7 @@ namespace Proyecto_alcaldia.Migrations
                 {
                     b.Navigation("Responsables");
 
-                    b.Navigation("Subsecretarias");
+                    b.Navigation("SecretariasSubsecretarias");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Sector", b =>
@@ -2379,6 +2783,13 @@ namespace Proyecto_alcaldia.Migrations
                     b.Navigation("PlanesNacionales");
 
                     b.Navigation("Programas");
+                });
+
+            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Subsecretaria", b =>
+                {
+                    b.Navigation("SecretariasSubsecretarias");
+
+                    b.Navigation("SubsecretariasResponsables");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Usuario", b =>

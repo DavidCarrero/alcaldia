@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -32,10 +33,65 @@ public class IndicadoresController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var indicadores = await _indicadorService.GetAllIndicadoresAsync(incluirInactivas: true);
-        return View(indicadores);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Indicadores
+            .Include(i => i.Responsable)
+            .Include(i => i.Producto)
+            .Include(i => i.Alcaldia)
+            .Where(i => !i.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(i => 
+                i.Codigo.ToLower().Contains(searchLower) || 
+                i.Nombre.ToLower().Contains(searchLower) ||
+                (i.Descripcion != null && i.Descripcion.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(i => i.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(i => new IndicadorViewModel
+            {
+                Id = i.Id,
+                Codigo = i.Codigo,
+                Nombre = i.Nombre,
+                Descripcion = i.Descripcion,
+                ResponsableId = i.ResponsableId,
+                NombreResponsable = i.Responsable != null ? i.Responsable.NombreCompleto : "",
+                ProductoId = i.ProductoId,
+                NombreProducto = i.Producto != null ? i.Producto.Nombre : "",
+                AlcaldiaId = i.AlcaldiaId
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalIndicadores = totalCount;
+        ViewBag.TotalConProducto = await _context.Indicadores.Where(i => !i.IsDeleted && i.ProductoId != null).CountAsync();
+        ViewBag.TotalConResponsable = await _context.Indicadores.Where(i => !i.IsDeleted && i.ResponsableId != null).CountAsync();
+
+        return View(items);
     }
 
     [HttpGet]
@@ -211,6 +267,26 @@ public class IndicadoresController : BaseController
         {
             _logger.LogError(ex, "Error al buscar indicadores");
             return Json(new List<object>());
+        }
+    }
+
+    // GET: Indicadores/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Indicadores
+                .Where(i => !i.IsDeleted)
+                .Select(i => i.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

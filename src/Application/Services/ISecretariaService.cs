@@ -8,7 +8,7 @@ public interface ISecretariaService
     Task<SecretariaViewModel?> GetSecretariaByIdAsync(int id);
     Task<SecretariaViewModel> CreateSecretariaAsync(SecretariaViewModel model);
     Task UpdateSecretariaAsync(int id, SecretariaViewModel model);
-    Task DeleteSecretariaAsync(int id);
+    Task DeleteSecretariaAsync(int id, string deletedBy);
     Task<IEnumerable<SecretariaViewModel>> SearchSecretariasAsync(string searchTerm);
     Task<IEnumerable<SecretariaViewModel>> GetByAlcaldiaIdAsync(int alcaldiaId);
 }

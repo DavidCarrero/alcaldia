@@ -17,6 +17,7 @@ public class MunicipioRepository : IMunicipioRepository
     public async Task<IEnumerable<Municipio>> GetAllAsync(bool incluirInactivos = false)
     {
         var query = _context.Municipios
+            .Where(m => !m.IsDeleted)
             .Include(m => m.Departamentos)
             .AsQueryable();
 
@@ -98,13 +99,18 @@ public class MunicipioRepository : IMunicipioRepository
         }
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var municipio = await GetByIdAsync(id);
+        var municipio = await _context.Municipios.FirstOrDefaultAsync(m => m.Id == id);
         if (municipio != null)
         {
+            // Soft delete
+            municipio.IsDeleted = true;
+            municipio.DeletedAt = DateTime.UtcNow;
+            municipio.DeletedBy = deletedBy;
             municipio.Activo = false;
-            await UpdateAsync(municipio);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

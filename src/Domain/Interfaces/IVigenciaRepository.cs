@@ -8,7 +8,7 @@ public interface IVigenciaRepository
     Task<Vigencia?> GetByIdAsync(int id);
     Task<Vigencia> CreateAsync(Vigencia vigencia);
     Task UpdateAsync(Vigencia vigencia);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Vigencia>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<int> CountActiveAsync();

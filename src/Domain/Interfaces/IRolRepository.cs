@@ -9,7 +9,7 @@ public interface IRolRepository
     Task<Rol?> GetByNameAsync(string nombre);
     Task<Rol> CreateAsync(Rol rol);
     Task UpdateAsync(Rol rol);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<bool> NameExistsAsync(string nombre, int? excludeRolId = null);
     Task<IEnumerable<Rol>> SearchAsync(string searchTerm);
     Task<int> CountActiveRolesAsync();

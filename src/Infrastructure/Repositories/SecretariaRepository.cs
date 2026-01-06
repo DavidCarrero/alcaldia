@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Domain.Entities;
 using Proyecto_alcaldia.Domain.Interfaces;
 using Proyecto_alcaldia.Infrastructure.Data;
+using System.Text.Json;
 
 namespace Proyecto_alcaldia.Infrastructure.Repositories;
 
@@ -19,6 +20,9 @@ public class SecretariaRepository : ISecretariaRepository
         var query = _context.Secretarias
             .Include(s => s.Alcaldia)
                 .ThenInclude(a => a.Municipio)
+            .Include(s => s.SecretariasSubsecretarias.Where(ss => !ss.IsDeleted))
+                .ThenInclude(ss => ss.Subsecretaria)
+            .Where(s => !s.IsDeleted)
             .AsQueryable();
 
         if (!incluirInactivas)
@@ -34,6 +38,9 @@ public class SecretariaRepository : ISecretariaRepository
         return await _context.Secretarias
             .Include(s => s.Alcaldia)
                 .ThenInclude(a => a.Municipio)
+            .Include(s => s.SecretariasSubsecretarias.Where(ss => !ss.IsDeleted))
+                .ThenInclude(ss => ss.Subsecretaria)
+            .Where(s => !s.IsDeleted)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -50,13 +57,21 @@ public class SecretariaRepository : ISecretariaRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var secretaria = await GetByIdAsync(id);
+        var secretaria = await _context.Secretarias
+            .FirstOrDefaultAsync(s => s.Id == id);
+            
         if (secretaria != null)
         {
+            // Soft delete
+            secretaria.IsDeleted = true;
+            secretaria.DeletedAt = DateTime.UtcNow;
+            secretaria.DeletedBy = deletedBy;
             secretaria.Activo = false;
-            await UpdateAsync(secretaria);
+            secretaria.FechaActualizacion = DateTime.UtcNow;
+            
+            await _context.SaveChangesAsync();
         }
     }
 
@@ -65,8 +80,11 @@ public class SecretariaRepository : ISecretariaRepository
         return await _context.Secretarias
             .Include(s => s.Alcaldia)
                 .ThenInclude(a => a.Municipio)
-            .Where(s => s.Nombre.Contains(searchTerm) ||
-                       (s.Descripcion != null && s.Descripcion.Contains(searchTerm)))
+            .Include(s => s.SecretariasSubsecretarias.Where(ss => !ss.IsDeleted))
+                .ThenInclude(ss => ss.Subsecretaria)
+            .Where(s => !s.IsDeleted && 
+                       (s.Nombre.Contains(searchTerm) ||
+                       (s.Descripcion != null && s.Descripcion.Contains(searchTerm))))
             .ToListAsync();
     }
 
@@ -74,7 +92,9 @@ public class SecretariaRepository : ISecretariaRepository
     {
         return await _context.Secretarias
             .Include(s => s.Alcaldia)
-            .Where(s => s.AlcaldiaId == alcaldiaId && s.Activo)
+            .Include(s => s.SecretariasSubsecretarias.Where(ss => !ss.IsDeleted))
+                .ThenInclude(ss => ss.Subsecretaria)
+            .Where(s => !s.IsDeleted && s.AlcaldiaId == alcaldiaId && s.Activo)
             .OrderBy(s => s.Nombre)
             .ToListAsync();
     }

@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Metas ODS";
     Layout = "_LayoutDashboard";
+    
+    // Obtener estadísticas desde ViewBag
+    var totalMetasODS = ViewBag.TotalMetasODS ?? ViewBag.TotalCount ?? Model.Count();
+    var metasODSActivas = ViewBag.MetasODSActivas ?? Model.Count(a => a.Activo);
+    var odsAsociados = ViewBag.ODSAsociados ?? Model.Count();
 }
 
 <main class="container-fluid">
@@ -39,7 +44,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Metas ODS</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@totalMetasODS</h3>
                             <small class="text-primary">Registradas</small>
                         </div>
                     </div>
@@ -58,7 +63,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Metas ODS Activas</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count(a => a.Activo)</h3>
+                            <h3 class="mb-0 fw-bold">@metasODSActivas</h3>
                             <small class="text-success">En operación</small>
                         </div>
                     </div>
@@ -77,7 +82,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">ODS Asociados</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@odsAsociados</h3>
                             <small class="text-info">Vinculados</small>
                         </div>
                     </div>
@@ -89,6 +94,7 @@
     <section class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -122,44 +128,67 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var meta in Model)
+                        @if (Model.Any())
                         {
-                            <tr x-show="searchTerm === '' || 
-                                           '@meta.Codigo'.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                           '@meta.Nombre'.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                           '@meta.Descripcion'.toLowerCase().includes(searchTerm.toLowerCase())" x-cloak>
-                                <td><span class="fw-bold">@meta.Codigo</span></td>
-                                <td>@meta.NitAlcaldia</td>
-                                <td>@meta.Nombre</td>
-                                <td>@meta.Descripcion</td>
-                                <td>
-                                    @if (meta.Activo)
+                            @foreach (var meta in Model)
+                            {
+                                <tr>
+                                    <td><span class="fw-bold">@meta.Codigo</span></td>
+                                    <td>@meta.NitAlcaldia</td>
+                                    <td>@meta.Nombre</td>
+                                    <td>@meta.Descripcion</td>
+                                    <td>
+                                        @if (meta.Activo)
+                                        {
+                                            <span class="badge bg-success">ACTIVO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">INACTIVO</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@meta.Id" class="btn-action btn-edit"
+                                                title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete"
+                                                onclick="confirmDelete('@Url.Action("Delete", "MetasODS", new { id = meta.Id })', '@meta.Codigo', '@Url.Action("Index", "MetasODS")')"
+                                                title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="fas fa-bullseye fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span class="badge bg-success">ACTIVO</span>
+                                        <p class="text-muted mb-3">No se encontraron metas ODS que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
+                                        </a>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">INACTIVO</span>
+                                        <p class="text-muted mb-3">No hay metas ODS registradas. Comience creando un nuevo registro.</p>
                                     }
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@meta.Id" class="btn-action btn-edit"
-                                            title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn-action btn-delete"
-                                            onclick="confirmDelete('@Url.Action("Delete", "MetasODS", new { id = meta.Id })', '@meta.Codigo', '@Url.Action("Index", "MetasODS")')"
-                                            title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </div>
 </main>

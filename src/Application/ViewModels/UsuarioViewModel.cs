@@ -35,6 +35,15 @@ public class UsuarioViewModel
 
     [Display(Name = "Último Acceso")]
     public DateTime? UltimoAcceso { get; set; }
+
+    // Propiedades para contraseñas (usadas en el formulario)
+    [DataType(DataType.Password)]
+    [Display(Name = "Contraseña")]
+    public string? Contrasena { get; set; }
+
+    [DataType(DataType.Password)]
+    [Display(Name = "Confirmar Contraseña")]
+    public string? ConfirmarContrasena { get; set; }
 }
 
 public class CrearUsuarioViewModel : UsuarioViewModel
@@ -43,24 +52,17 @@ public class CrearUsuarioViewModel : UsuarioViewModel
     [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener entre 6 y 100 caracteres")]
     [DataType(DataType.Password)]
     [Display(Name = "Contraseña")]
-    public string Contrasena { get; set; } = string.Empty;
+    public new string? Contrasena { get; set; }
 
     [Required(ErrorMessage = "Debe confirmar la contraseña")]
     [Compare("Contrasena", ErrorMessage = "Las contraseñas no coinciden")]
     [DataType(DataType.Password)]
     [Display(Name = "Confirmar Contraseña")]
-    public string ConfirmarContrasena { get; set; } = string.Empty;
+    public new string? ConfirmarContrasena { get; set; }
 }
 
 public class EditarUsuarioViewModel : UsuarioViewModel
 {
-    [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener entre 6 y 100 caracteres")]
-    [DataType(DataType.Password)]
-    [Display(Name = "Nueva Contraseña (dejar en blanco para no cambiar)")]
-    public string? NuevaContrasena { get; set; }
-
-    [Compare("NuevaContrasena", ErrorMessage = "Las contraseñas no coinciden")]
-    [DataType(DataType.Password)]
-    [Display(Name = "Confirmar Nueva Contraseña")]
-    public string? ConfirmarNuevaContrasena { get; set; }
+    // Las propiedades de contraseña se heredan de la clase base
+    // No son requeridas en edición, solo se actualizan si se proporcionan
 }

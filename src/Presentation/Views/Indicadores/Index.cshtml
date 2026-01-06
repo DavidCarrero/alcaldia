@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Indicadores";
     Layout = "_LayoutDashboard";
+    
+    // Obtener estadísticas desde ViewBag
+    var totalIndicadores = ViewBag.TotalIndicadores ?? ViewBag.TotalCount ?? Model.Count();
+    var conMetaFinal = ViewBag.ConMetaFinal ?? Model.Count(i => i.MetaFinal.HasValue);
+    var conResponsable = ViewBag.ConResponsable ?? Model.Count(i => i.ResponsableId.HasValue);
 }
 
 <main class="container-fluid">
@@ -40,7 +45,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Indicadores</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@totalIndicadores</h3>
                             <small class="text-primary">Registrados</small>
                         </div>
                     </div>
@@ -59,7 +64,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Con Meta Final</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count(i => i.MetaFinal.HasValue)</h3>
+                            <h3 class="mb-0 fw-bold">@conMetaFinal</h3>
                             <small class="text-success">Con metas definidas</small>
                         </div>
                     </div>
@@ -78,7 +83,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Con Responsable</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count(i => i.ResponsableId.HasValue)</h3>
+                            <h3 class="mb-0 fw-bold">@conResponsable</h3>
                             <small class="text-info">Asignados</small>
                         </div>
                     </div>
@@ -91,6 +96,7 @@
     <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de indicadores">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -127,43 +133,69 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var indicador in Model)
+                        @if (Model.Any())
+                        {
+                            @foreach (var indicador in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@indicador.Codigo</span></td>
+                                    <td><span class="fw-bold">@indicador.Nombre</span></td>
+                                    <td>@indicador.NombreProducto</td>
+                                    <td>@indicador.UnidadMedida</td>
+                                    <td>@(indicador.LineaBase?.ToString("N2") ?? "-")</td>
+                                    <td>
+                                        @if (indicador.MetaFinal.HasValue)
+                                        {
+                                            <span class="badge bg-success">@indicador.MetaFinal.Value.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>@indicador.NombreResponsable</td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@indicador.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete" 
+                                                    onclick="confirmDelete('@Url.Action("Delete", "Indicadores", new { id = indicador.Id })', '@indicador.Codigo', '@Url.Action("Index", "Indicadores")')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td><span class="badge bg-secondary">@indicador.Codigo</span></td>
-                                <td><span class="fw-bold">@indicador.Nombre</span></td>
-                                <td>@indicador.NombreProducto</td>
-                                <td>@indicador.UnidadMedida</td>
-                                <td>@(indicador.LineaBase?.ToString("N2") ?? "-")</td>
-                                <td>
-                                    @if (indicador.MetaFinal.HasValue)
+                                <td colspan="8" class="text-center py-5">
+                                    <i class="fas fa-chart-line fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span class="badge bg-success">@indicador.MetaFinal.Value.ToString("N2")</span>
+                                        <p class="text-muted mb-3">No se encontraron indicadores que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
+                                        </a>
                                     }
                                     else
                                     {
-                                        <span class="text-muted">-</span>
+                                        <p class="text-muted mb-3">No hay indicadores registrados. Comience creando un nuevo registro.</p>
                                     }
-                                </td>
-                                <td>@indicador.NombreResponsable</td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@indicador.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn-action btn-delete" 
-                                                onclick="confirmDelete('@Url.Action("Delete", "Indicadores", new { id = indicador.Id })', '@indicador.Codigo', '@Url.Action("Index", "Indicadores")')"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </section>
 </main>

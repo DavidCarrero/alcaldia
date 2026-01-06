@@ -23,6 +23,15 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            @Html.ValidationSummary(false, "", new { @class = "mb-0 list-unstyled" })
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
                     <form asp-action="@action" method="post" class="needs-validation">
                         @Html.AntiForgeryToken()
 
@@ -30,6 +39,8 @@
                         {
                             @Html.HiddenFor(m => m.Id)
                         }
+                        
+                        @Html.HiddenFor(m => m.AlcaldiaId)
 
                         <div class="row g-3">
                             <!-- Código -->
@@ -43,7 +54,8 @@
                                     @class = "form-control text-uppercase", 
                                     maxlength = "20",
                                     placeholder = "Código único",
-                                    autocomplete = "off"
+                                    autocomplete = "off",
+                                    id = "codigoInput"
                                 })
                                 @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
@@ -191,4 +203,25 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            var isEdit = @(isEdit ? "true" : "false");
+            var codigoInput = $('#codigoInput');
+            
+            // Solo autocompletar si es creación y el campo está vacío
+            if (!isEdit && !codigoInput.val()) {
+                $.ajax({
+                    url: '@Url.Action("GetNextId", "Secretarias")',
+                    type: 'GET',
+                    success: function(data) {
+                        codigoInput.val(data.nextId);
+                    },
+                    error: function() {
+                        console.log('Error al obtener siguiente ID');
+                    }
+                });
+            }
+        });
+    </script>
 }

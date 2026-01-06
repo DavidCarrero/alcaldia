@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -23,10 +24,57 @@ public class DepartamentosController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var departamentos = await _departamentoService.GetAllDepartamentosAsync(incluirInactivos: true);
-        return View(departamentos);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Departamentos
+            .Include(d => d.Municipios)
+            .Where(d => !d.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(d => 
+                d.Codigo.ToLower().Contains(searchLower) || 
+                d.Nombre.ToLower().Contains(searchLower));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(d => d.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(d => new DepartamentoViewModel
+            {
+                Id = d.Id,
+                Codigo = d.Codigo,
+                Nombre = d.Nombre,
+                Activo = d.Activo,
+                CantidadMunicipios = d.Municipios.Count
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalDepartamentos = await _context.Departamentos.CountAsync(d => !d.IsDeleted);
+        ViewBag.DepartamentosActivos = await _context.Departamentos.CountAsync(d => !d.IsDeleted && d.Activo);
+
+        return View(items);
     }
 
     [HttpGet]
@@ -168,5 +216,25 @@ public class DepartamentosController : BaseController
     {
         var exists = await _departamentoService.CodigoExistsAsync(codigo, id);
         return Json(!exists);
+    }
+
+    // GET: Departamentos/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Departamentos
+                .Where(d => !d.IsDeleted)
+                .Select(d => d.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
+        }
     }
 }

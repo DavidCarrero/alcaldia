@@ -54,13 +54,19 @@ public class MetaODSRepository : IMetaODSRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var metaODS = await GetByIdAsync(id);
+        var metaODS = await _context.MetasODS.FirstOrDefaultAsync(m => m.Id == id);
+            
         if (metaODS != null)
         {
+            // Soft delete
+            metaODS.IsDeleted = true;
+            metaODS.DeletedAt = DateTime.UtcNow;
+            metaODS.DeletedBy = deletedBy;
             metaODS.Activo = false;
-            await UpdateAsync(metaODS);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

@@ -39,6 +39,7 @@
                     
                     <form asp-action="@action" asp-controller="ODS" method="post" class="needs-validation" novalidate>
                         @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.AlcaldiaId)
                         @if (isEdit)
                         {
                             @Html.HiddenFor(m => m.Id)
@@ -55,7 +56,8 @@
                                 @Html.TextBoxFor(model => model.Codigo, new { 
                                     @class = "form-control", 
                                     placeholder = "Ej: ODS-001",
-                                    autocomplete = "off"
+                                    autocomplete = "off",
+                                    id = "Codigo"
                                 })
                                 @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
@@ -159,6 +161,30 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
+        // Cargar el siguiente código disponible al crear
+        @if (!isEdit)
+        {
+            <text>
+            $(document).ready(function() {
+                var codigoInput = $('#Codigo');
+                if (!codigoInput.val() || codigoInput.val() === '0' || parseInt(codigoInput.val()) === 0) {
+                    $.ajax({
+                        url: '@Url.Action("GetNextCodigo", "ODS")',
+                        type: 'GET',
+                        success: function(data) {
+                            if (data && data.codigo) {
+                                codigoInput.val(data.codigo);
+                            }
+                        },
+                        error: function() {
+                            console.log('Error al obtener siguiente ID');
+                        }
+                    });
+                }
+            });
+            </text>
+        }
+
         function multiSelect(options, initialSelected) {
             return {
                 options: options,

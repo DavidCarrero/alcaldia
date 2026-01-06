@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Evidencias";
     Layout = "_LayoutDashboard";
+    
+    // Obtener estadísticas desde ViewBag
+    var totalEvidencias = ViewBag.TotalEvidencias ?? ViewBag.TotalCount ?? Model.Count();
+    var evidenciasActivas = ViewBag.EvidenciasActivas ?? Model.Count(e => e.Activo);
+    var tamanoTotal = ViewBag.TamanoTotal ?? Model.Sum(e => e.TamanoBytes ?? 0);
 }
 
 <main class="container-fluid">
@@ -40,7 +45,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Evidencias</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@totalEvidencias</h3>
                             <small class="text-primary">Registradas</small>
                         </div>
                     </div>
@@ -59,7 +64,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Evidencias Activas</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count(e => e.Activo)</h3>
+                            <h3 class="mb-0 fw-bold">@evidenciasActivas</h3>
                             <small class="text-success">En el sistema</small>
                         </div>
                     </div>
@@ -78,7 +83,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Tamaño Total</h6>
-                            <h3 class="mb-0 fw-bold">@((Model.Sum(e => e.TamanoBytes ?? 0) / (1024.0 * 1024.0)).ToString("N2")) MB</h3>
+                            <h3 class="mb-0 fw-bold">@(((long)tamanoTotal / (1024.0 * 1024.0)).ToString("N2")) MB</h3>
                             <small class="text-info">Almacenado</small>
                         </div>
                     </div>
@@ -91,6 +96,7 @@
     <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de evidencias">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -128,55 +134,81 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var evidencia in Model)
+                        @if (Model.Any())
+                        {
+                            @foreach (var evidencia in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@evidencia.Codigo</span></td>
+                                    <td><span class="fw-bold">@evidencia.Nombre</span></td>
+                                    <td>@evidencia.NombreActividad</td>
+                                    <td>@evidencia.TipoEvidencia</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(evidencia.NombreArchivo))
+                                        {
+                                            <span class="text-truncate d-inline-block" style="max-width: 150px;" title="@evidencia.NombreArchivo">
+                                                <i class="fas fa-file me-1"></i>@evidencia.NombreArchivo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>@((evidencia.TamanoBytes.HasValue ? (evidencia.TamanoBytes.Value / 1024.0).ToString("N2") + " KB" : "-"))</td>
+                                    <td>@(evidencia.FechaCaptura?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                    <td>
+                                        @if (evidencia.Activo)
+                                        {
+                                            <span class="badge bg-success"><i class="fas fa-check"></i> Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="fas fa-times"></i> Inactiva</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@evidencia.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete" 
+                                                    onclick="confirmDelete('@Url.Action("Delete", "Evidencias", new { id = evidencia.Id })', '@evidencia.Codigo', '@Url.Action("Index", "Evidencias")')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td><span class="badge bg-secondary">@evidencia.Codigo</span></td>
-                                <td><span class="fw-bold">@evidencia.Nombre</span></td>
-                                <td>@evidencia.NombreActividad</td>
-                                <td>@evidencia.TipoEvidencia</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(evidencia.NombreArchivo))
+                                <td colspan="9" class="text-center py-5">
+                                    <i class="fas fa-file-invoice fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="@evidencia.NombreArchivo">
-                                            <i class="fas fa-file me-1"></i>@evidencia.NombreArchivo
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">-</span>
-                                    }
-                                </td>
-                                <td>@((evidencia.TamanoBytes.HasValue ? (evidencia.TamanoBytes.Value / 1024.0).ToString("N2") + " KB" : "-"))</td>
-                                <td>@(evidencia.FechaCaptura?.ToString("dd/MM/yyyy") ?? "-")</td>
-                                <td>
-                                    @if (evidencia.Activo)
-                                    {
-                                        <span class="badge bg-success"><i class="fas fa-check"></i> Activa</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary"><i class="fas fa-times"></i> Inactiva</span>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@evidencia.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <p class="text-muted mb-3">No se encontraron evidencias que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
                                         </a>
-                                        <button type="button" class="btn-action btn-delete" 
-                                                onclick="confirmDelete('@Url.Action("Delete", "Evidencias", new { id = evidencia.Id })', '@evidencia.Codigo', '@Url.Action("Index", "Evidencias")')"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay evidencias registradas. Comience creando un nuevo registro.</p>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </section>
 </main>

@@ -1,0 +1,128 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.ResponsableViewModel>
+
+@if (Model != null && Model.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Responsable</th>
+                    <th>Documento</th>
+                    <th>Cargo</th>
+                    <th>Contacto</th>
+                    <th>Alcaldía</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var responsable in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar user-avatar-primary me-2">
+                                    @responsable.NombreCompleto.Substring(0, 1).ToUpper()
+                                </div>
+                                <div>
+                                    <div class="fw-bold">@responsable.NombreCompleto</div>
+                                    @if (!string.IsNullOrEmpty(responsable.TipoResponsable))
+                                    {
+                                        <small class="badge bg-secondary">@responsable.TipoResponsable</small>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>@responsable.TipoDocumento</div>
+                            <small class="text-muted">@responsable.NumeroIdentificacion</small>
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(responsable.Cargo))
+                            {
+                                <span class="badge badge-gradient bg-info">@responsable.Cargo</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(responsable.Email))
+                            {
+                                <div><i class="fas fa-envelope text-muted me-1"></i> @responsable.Email</div>
+                            }
+                            @if (!string.IsNullOrEmpty(responsable.Telefono))
+                            {
+                                <div><i class="fas fa-phone text-muted me-1"></i> @responsable.Telefono</div>
+                            }
+                            @if (string.IsNullOrEmpty(responsable.Email) && string.IsNullOrEmpty(responsable.Telefono))
+                            {
+                                <span class="text-muted">Sin contacto</span>
+                            }
+                        </td>
+                        <td>
+                            @if (responsable.AlcaldiaId > 0)
+                            {
+                                if (!string.IsNullOrEmpty(responsable.MunicipioAlcaldia))
+                                {
+                                    <div>@responsable.MunicipioAlcaldia</div>
+                                    @if (!string.IsNullOrEmpty(responsable.NitAlcaldia))
+                                    {
+                                        <small class="text-muted">@responsable.NitAlcaldia</small>
+                                    }
+                                }
+                                else if (!string.IsNullOrEmpty(responsable.NitAlcaldia))
+                                {
+                                    <div>@responsable.NitAlcaldia</div>
+                                }
+                                else
+                                {
+                                    <div>Alcaldía asignada</div>
+                                    <small class="text-muted">ID: @responsable.AlcaldiaId</small>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin alcaldía</span>
+                            }
+                        </td>
+                        <td>
+                            @if (responsable.Activo)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <div class="action-buttons">
+                                <a asp-action="Edit" asp-route-id="@responsable.Id" 
+                                   class="btn-action btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn-action btn-delete" 
+                                        onclick="confirmDelete('@Url.Action("Delete", "Responsables", new { id = responsable.Id })', '@responsable.NombreCompleto', '@Url.Action("Index", "Responsables")')"
+                                        title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="fas fa-search fa-2x me-3"></i>
+        <div>
+            <h5 class="alert-heading mb-1">No se encontraron resultados</h5>
+            <p class="mb-0">No hay responsables que coincidan con tu búsqueda. Intenta con otros términos.</p>
+        </div>
+    </div>
+}

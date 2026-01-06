@@ -28,12 +28,6 @@ public class Subsecretaria : BaseEntity
     [Column("descripcion", TypeName = "text")]
     public string? Descripcion { get; set; }
 
-    [Column("secretaria_id")]
-    public int? SecretariaId { get; set; }
-
-    [ForeignKey("SecretariaId")]
-    public Secretaria? Secretaria { get; set; }
-
     [MaxLength(200)]
     [Column("responsable")]
     public string? Responsable { get; set; }
@@ -48,4 +42,8 @@ public class Subsecretaria : BaseEntity
 
     [Column("presupuesto_asignado", TypeName = "numeric(18,2)")]
     public decimal? PresupuestoAsignado { get; set; }
+
+    // Relaciones
+    public ICollection<SecretariaSubsecretaria> SecretariasSubsecretarias { get; set; } = new List<SecretariaSubsecretaria>();
+    public ICollection<SubsecretariaResponsable> SubsecretariasResponsables { get; set; } = new List<SubsecretariaResponsable>();
 }

@@ -46,8 +46,8 @@ public class ActividadService : IActividadService
             ResponsableId = model.ResponsableId,
             VigenciaId = model.VigenciaId,
             TipoActividad = model.TipoActividad,
-            FechaInicioProgramada = model.FechaInicio,
-            FechaFinProgramada = model.FechaFin,
+            FechaInicioProgramada = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null,
+            FechaFinProgramada = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null,
             MetaPlaneada = model.MetaPlaneada,
             PorcentajeAvance = model.PorcentajeAvance,
             Activo = model.Activo,
@@ -82,8 +82,8 @@ public class ActividadService : IActividadService
         actividad.ResponsableId = model.ResponsableId;
         actividad.VigenciaId = model.VigenciaId;
         actividad.TipoActividad = model.TipoActividad;
-        actividad.FechaInicioProgramada = model.FechaInicio;
-        actividad.FechaFinProgramada = model.FechaFin;
+        actividad.FechaInicioProgramada = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null;
+        actividad.FechaFinProgramada = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null;
         actividad.MetaPlaneada = model.MetaPlaneada;
         actividad.PorcentajeAvance = model.PorcentajeAvance;
         actividad.Activo = model.Activo;
@@ -95,7 +95,7 @@ public class ActividadService : IActividadService
 
     public async Task DeleteActividadAsync(int id)
     {
-        await _actividadRepository.DeleteAsync(id);
+        await _actividadRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Actividad desactivada: ID {id}");
     }
 

@@ -52,13 +52,19 @@ public class ProductoRepository : IProductoRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var producto = await GetByIdAsync(id);
+        var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
+            
         if (producto != null)
         {
+            // Soft delete
+            producto.IsDeleted = true;
+            producto.DeletedAt = DateTime.UtcNow;
+            producto.DeletedBy = deletedBy;
             producto.Activo = false;
-            await UpdateAsync(producto);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

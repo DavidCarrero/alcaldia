@@ -17,6 +17,7 @@ public class RolRepository : IRolRepository
     public async Task<IEnumerable<Rol>> GetAllAsync(bool incluirInactivos = false)
     {
         var query = _context.Roles
+            .Where(r => !r.IsDeleted)
             .Include(r => r.UsuariosRoles)
             .AsQueryable();
 
@@ -55,13 +56,19 @@ public class RolRepository : IRolRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var rol = await GetByIdAsync(id);
+        var rol = await _context.Roles.FirstOrDefaultAsync(r => r.Id == id);
         if (rol != null)
         {
+            // Soft delete
+            rol.IsDeleted = true;
+            rol.DeletedAt = DateTime.UtcNow;
+            rol.DeletedBy = deletedBy;
             rol.Activo = false;
-            await UpdateAsync(rol);
+            rol.FechaActualizacion = DateTime.UtcNow;
+            
+            await _context.SaveChangesAsync();
         }
     }
 

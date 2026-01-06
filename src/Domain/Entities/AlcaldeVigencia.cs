@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Proyecto_alcaldia.Domain.Entities;
 
 [Table("alcaldes_vigencias")]
-public class AlcaldeVigencia
+public class AlcaldeVigencia : BaseEntity
 {
     [Column("id")]
-    public int Id { get; set; }
+    public new int Id { get; set; }
 
     [Column("alcalde_id")]
     public int AlcaldeId { get; set; }
@@ -22,7 +22,4 @@ public class AlcaldeVigencia
 
     [Column("fecha_asignacion")]
     public DateTime FechaAsignacion { get; set; } = DateTime.UtcNow;
-
-    [Column("activo")]
-    public bool Activo { get; set; } = true;
 }

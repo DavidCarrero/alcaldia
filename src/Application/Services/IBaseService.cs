@@ -38,5 +38,6 @@ public interface IBaseService<TViewModel> where TViewModel : class
     /// Elimina (desactiva) un registro de forma lógica
     /// </summary>
     /// <param name="id">ID del registro a eliminar</param>
-    Task DeleteAsync(int id);
+    /// <param name="deletedBy">ID del usuario que elimina el registro</param>
+    Task DeleteAsync(int id, string deletedBy);
 }

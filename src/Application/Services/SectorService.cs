@@ -85,7 +85,7 @@ public class SectorService : ISectorService
 
     public async Task DeleteSectorAsync(int id)
     {
-        await _sectorRepository.DeleteAsync(id);
+        await _sectorRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Sector desactivado: ID {id}");
     }
 

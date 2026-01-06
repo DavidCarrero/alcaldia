@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Proyecto_alcaldia.Application.Common;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -26,10 +28,60 @@ public class SecretariasController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var secretarias = await _secretariaService.GetAllSecretariasAsync(incluirInactivas: true);
-        return View(secretarias);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Secretarias
+            .Include(s => s.SecretariasSubsecretarias)
+            .Include(s => s.Alcaldia)
+            .Where(s => !s.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(s => 
+                s.Codigo.ToLower().Contains(searchLower) || 
+                s.Nombre.ToLower().Contains(searchLower));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(s => s.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(s => new SecretariaViewModel
+            {
+                Id = s.Id,
+                Codigo = s.Codigo,
+                Nombre = s.Nombre,
+                Descripcion = s.Descripcion,
+                Activo = s.Activo,
+                AlcaldiaId = s.AlcaldiaId,
+                NitAlcaldia = s.Alcaldia != null ? s.Alcaldia.Nit : ""
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalSecretarias = await _context.Secretarias.CountAsync(s => !s.IsDeleted);
+        ViewBag.SecretariasActivas = await _context.Secretarias.CountAsync(s => !s.IsDeleted && s.Activo);
+
+        return View(items);
     }
 
     [HttpGet]
@@ -51,7 +103,7 @@ public class SecretariasController : BaseController
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return View("Form", model);
         }
 
         try
@@ -59,7 +111,8 @@ public class SecretariasController : BaseController
             // Validar que el usuario tenga una alcaldía asignada
             if (!ValidarAlcaldiaId())
             {
-                return View(model);
+                TempData["Error"] = "No tiene una alcaldía asignada.";
+                return View("Form", model);
             }
 
             // Asignar alcaldía del usuario logueado
@@ -72,7 +125,8 @@ public class SecretariasController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al crear secretaría");
-            ModelState.AddModelError("", ex.Message);
+            var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
+            ModelState.AddModelError("", mensajeError);
             return View("Form", model);
         }
     }
@@ -97,11 +151,19 @@ public class SecretariasController : BaseController
     {
         if (!ModelState.IsValid)
         {
+            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
+            ViewBag.Alcaldias = alcaldias.Select(a => new { Id = a.Id, Text = $"{a.Nit} - {a.NombreMunicipio}" });
             return View("Form", model);
         }
 
         try
         {
+            // Asegurar que el AlcaldiaId se preserve
+            if (model.AlcaldiaId == 0)
+            {
+                model.AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0;
+            }
+            
             await _secretariaService.UpdateSecretariaAsync(id, model);
             TempData["Success"] = "Secretaría actualizada exitosamente";
             return RedirectToAction(nameof(Index));
@@ -109,7 +171,10 @@ public class SecretariasController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al actualizar secretaría");
-            ModelState.AddModelError("", ex.Message);
+            var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
+            ModelState.AddModelError("", mensajeError);
+            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
+            ViewBag.Alcaldias = alcaldias.Select(a => new { Id = a.Id, Text = $"{a.Nit} - {a.NombreMunicipio}" });
             return View("Form", model);
         }
     }
@@ -126,7 +191,8 @@ public class SecretariasController : BaseController
                 return Json(new { success = false, message = "La secretaría no fue encontrada." });
             }
 
-            await _secretariaService.DeleteSecretariaAsync(id);
+            var deletedBy = await ObtenerUsuarioIdActual();
+            await _secretariaService.DeleteSecretariaAsync(id, deletedBy);
             return Json(new { success = true, message = $"La secretaría '{secretaria.Nombre}' ha sido eliminada exitosamente." });
         }
         catch (Exception ex)
@@ -177,6 +243,26 @@ public class SecretariasController : BaseController
         {
             _logger.LogError(ex, "Error al buscar secretarías");
             return Json(new List<object>());
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            // Obtener el máximo ID excluyendo los eliminados con soft delete
+            var maxId = await _context.Secretarias
+                .Where(s => !s.IsDeleted)
+                .Select(s => s.Id)
+                .MaxAsync();
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener siguiente ID");
+            // Si no hay registros, MaxAsync lanza excepción, retornar 1
+            return Json(new { nextId = 1 });
         }
     }
 }

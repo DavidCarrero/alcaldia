@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Proyectos";
     Layout = "_LayoutDashboard";
+    
+    // Obtener estadísticas desde ViewBag
+    var totalProyectos = ViewBag.TotalProyectos ?? ViewBag.TotalCount ?? Model.Count();
+    var proyectosActivos = ViewBag.ProyectosActivos ?? Model.Count(p => p.EstadoProyecto == true);
+    var presupuestoTotal = ViewBag.PresupuestoTotal ?? Model.Sum(p => p.PresupuestoAsignado ?? 0);
 }
 
 <main class="container-fluid">
@@ -40,7 +45,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Proyectos</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@totalProyectos</h3>
                             <small class="text-primary">Registrados</small>
                         </div>
                     </div>
@@ -59,7 +64,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Proyectos Activos</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count(p => p.EstadoProyecto == true)</h3>
+                            <h3 class="mb-0 fw-bold">@proyectosActivos</h3>
                             <small class="text-success">En ejecución</small>
                         </div>
                     </div>
@@ -78,7 +83,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Presupuesto Total</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Sum(p => p.PresupuestoAsignado ?? 0).ToString("C0")</h3>
+                            <h3 class="mb-0 fw-bold">@(((decimal)presupuestoTotal).ToString("C0"))</h3>
                             <small class="text-info">Asignado</small>
                         </div>
                     </div>
@@ -91,6 +96,7 @@
     <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de proyectos">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -127,52 +133,78 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var proyecto in Model)
+                        @if (Model.Any())
+                        {
+                            @foreach (var proyecto in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@proyecto.Codigo</span></td>
+                                    <td><span class="fw-bold">@proyecto.Nombre</span></td>
+                                    <td>@(proyecto.CodigoBPIN?.ToString("N0") ?? "-")</td>
+                                    <td>@proyecto.NombreResponsable</td>
+                                    <td>@(proyecto.PresupuestoAsignado?.ToString("C0") ?? "-")</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: @(proyecto.PorcentajeAvance ?? 0)%"
+                                                 aria-valuenow="@(proyecto.PorcentajeAvance ?? 0)" 
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                                @(proyecto.PorcentajeAvance?.ToString("N0") ?? "0")%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (proyecto.EstadoProyecto == true)
+                                        {
+                                            <span class="badge bg-success">ACTIVO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">INACTIVO</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@proyecto.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete" 
+                                                    onclick="confirmDelete('@Url.Action("Delete", "Proyectos", new { id = proyecto.Id })', '@proyecto.Codigo', '@Url.Action("Index", "Proyectos")')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td><span class="badge bg-secondary">@proyecto.Codigo</span></td>
-                                <td><span class="fw-bold">@proyecto.Nombre</span></td>
-                                <td>@(proyecto.CodigoBPIN?.ToString("N0") ?? "-")</td>
-                                <td>@proyecto.NombreResponsable</td>
-                                <td>@(proyecto.PresupuestoAsignado?.ToString("C0") ?? "-")</td>
-                                <td>
-                                    <div class="progress" style="height: 20px;">
-                                        <div class="progress-bar" role="progressbar" 
-                                             style="width: @(proyecto.PorcentajeAvance ?? 0)%"
-                                             aria-valuenow="@(proyecto.PorcentajeAvance ?? 0)" 
-                                             aria-valuemin="0" aria-valuemax="100">
-                                            @(proyecto.PorcentajeAvance?.ToString("N0") ?? "0")%
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    @if (proyecto.EstadoProyecto == true)
+                                <td colspan="8" class="text-center py-5">
+                                    <i class="fas fa-project-diagram fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span class="badge bg-success">ACTIVO</span>
+                                        <p class="text-muted mb-3">No se encontraron proyectos que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
+                                        </a>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">INACTIVO</span>
+                                        <p class="text-muted mb-3">No hay proyectos registrados. Comience creando un nuevo registro.</p>
                                     }
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@proyecto.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn-action btn-delete" 
-                                                onclick="confirmDelete('@Url.Action("Delete", "Proyectos", new { id = proyecto.Id })', '@proyecto.Codigo', '@Url.Action("Index", "Proyectos")')"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </section>
 </main>

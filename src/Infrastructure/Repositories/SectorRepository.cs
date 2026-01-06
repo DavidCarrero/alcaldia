@@ -56,13 +56,19 @@ public class SectorRepository : ISectorRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var sector = await GetByIdAsync(id);
+        var sector = await _context.Sectores.FirstOrDefaultAsync(s => s.Id == id);
+            
         if (sector != null)
         {
+            // Soft delete
+            sector.IsDeleted = true;
+            sector.DeletedAt = DateTime.UtcNow;
+            sector.DeletedBy = deletedBy;
             sector.Activo = false;
-            await UpdateAsync(sector);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

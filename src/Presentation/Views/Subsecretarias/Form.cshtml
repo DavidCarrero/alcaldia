@@ -23,8 +23,18 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            @Html.ValidationSummary(false, "", new { @class = "mb-0 list-unstyled" })
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
                     <form asp-action="@action" asp-controller="Subsecretarias" method="post" class="needs-validation" novalidate>
                         @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.AlcaldiaId)
                         @if (isEdit)
                         {
                             @Html.HiddenFor(m => m.Id)
@@ -42,7 +52,8 @@
                                     @class = "form-control text-uppercase", 
                                     placeholder = "Código único",
                                     maxlength = "20",
-                                    autocomplete = "off"
+                                    autocomplete = "off",
+                                    id = "codigoInput"
                                 })
                                 @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
@@ -77,38 +88,29 @@
                                 @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
 
-                            <!-- Secretaría -->
+                            <!-- Secretarías (Multi-select) -->
                             @{
-                                ViewData["fieldName"] = "SecretariaId";
-                                ViewData["label"] = "Secretaría";
-                                ViewData["searchUrl"] = "/Secretarias/Search";
-                                ViewData["displayField"] = "codigo";
-                                ViewData["secondaryField"] = "nombre";
-                                ViewData["icon"] = "fa-building";
-                                ViewData["placeholder"] = "Escribe y presiona Enter para buscar... (opcional)";
+                                ViewData["fieldName"] = "secretariasIds";
+                                ViewData["label"] = "Secretarías";
+                                ViewData["options"] = ViewBag.Secretarias;
+                                ViewData["selectedValues"] = Model?.SecretariasIds;
+                                ViewData["placeholder"] = "Seleccione una o más secretarías";
                                 ViewData["required"] = "False";
-                                
-                                if (isEdit && Model?.SecretariaId > 0)
-                                {
-                                    ViewData["initialValue"] = Model.SecretariaId.ToString();
-                                    ViewData["initialDisplay"] = Model.CodigoSecretaria;
-                                }
+                                ViewData["icon"] = "fa-building";
                             }
-                            @await Html.PartialAsync("_SearchableDropdown")
+                            @await Html.PartialAsync("_SimpleMultiDropdown")
 
-                            <!-- Responsable -->
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-user-tie me-1"></i>
-                                    @Html.DisplayNameFor(model => model.Responsable)
-                                </label>
-                                @Html.TextBoxFor(model => model.Responsable, new { 
-                                    @class = "form-control", 
-                                    placeholder = "Nombre del responsable",
-                                    autocomplete = "off"
-                                })
-                                @Html.ValidationMessageFor(model => model.Responsable, "", new { @class = "text-danger small mt-1 d-block" })
-                            </div>
+                            <!-- Responsables (Multi-select) -->
+                            @{
+                                ViewData["fieldName"] = "responsablesIds";
+                                ViewData["label"] = "Responsables";
+                                ViewData["options"] = ViewBag.Responsables;
+                                ViewData["selectedValues"] = Model?.ResponsablesIds;
+                                ViewData["placeholder"] = "Seleccione uno o más responsables";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-user-tie";
+                            }
+                            @await Html.PartialAsync("_SimpleMultiDropdown")
 
                             <!-- Teléfono -->
                             <div class="col-md-6">
@@ -193,4 +195,26 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <script>
+        $(document).ready(function() {
+            var isEdit = @(isEdit ? "true" : "false");
+            var codigoInput = $('#codigoInput');
+            
+            // Solo autocompletar si es creación y el campo está vacío
+            if (!isEdit && !codigoInput.val()) {
+                $.ajax({
+                    url: '@Url.Action("GetNextId", "Subsecretarias")',
+                    type: 'GET',
+                    success: function(data) {
+                        codigoInput.val(data.nextId);
+                    },
+                    error: function() {
+                        console.log('Error al obtener siguiente ID');
+                    }
+                });
+            }
+        });
+    </script>
 }

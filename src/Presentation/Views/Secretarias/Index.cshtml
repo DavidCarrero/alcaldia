@@ -3,8 +3,11 @@
 @{
     ViewData["Title"] = "Secretarías";
     Layout = "_LayoutDashboard";
-    var activas = Model.Count(s => s.Activo);
-    var totalSubsecretarias = Model.Sum(s => s.CantidadSubsecretarias);
+    
+    // Obtener estadísticas desde ViewBag
+    var totalSecretarias = ViewBag.TotalSecretarias ?? ViewBag.TotalCount ?? Model.Count();
+    var activas = ViewBag.Activas ?? Model.Count(s => s.Activo);
+    var totalSubsecretarias = ViewBag.TotalSubsecretarias ?? Model.Sum(s => s.CantidadSubsecretarias);
 }
 
 <main class="container-fluid">
@@ -32,18 +35,18 @@
     <!-- Tarjetas de Estadísticas -->
     <section class="row g-4 mb-4" aria-label="Estadísticas de secretarías">
         <div class="col-xl-4 col-md-6">
-            <div class="card stat-card">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="stat-icon stat-icon-primary text-white">
-                                <i class="fas fa-building"></i>
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-building fa-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="stat-label">Total Secretarías</h6>
-                            <h3 class="stat-value">@Model.Count()</h3>
-                            <small class="stat-description text-primary">Registradas</small>
+                            <h6 class="text-muted mb-1">Total Secretarías</h6>
+                            <h3 class="mb-0 fw-bold">@totalSecretarias</h3>
+                            <small class="text-primary">Registradas</small>
                         </div>
                     </div>
                 </div>
@@ -51,18 +54,18 @@
         </div>
 
         <div class="col-xl-4 col-md-6">
-            <div class="card stat-card">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="stat-icon stat-icon-success text-white">
-                                <i class="fas fa-check-circle"></i>
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-check-circle fa-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="stat-label">Activas</h6>
-                            <h3 class="stat-value">@activas</h3>
-                            <small class="stat-description text-success">En operación</small>
+                            <h6 class="text-muted mb-1">Activas</h6>
+                            <h3 class="mb-0 fw-bold">@activas</h3>
+                            <small class="text-success">En operación</small>
                         </div>
                     </div>
                 </div>
@@ -70,18 +73,18 @@
         </div>
 
         <div class="col-xl-4 col-md-6">
-            <div class="card stat-card">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="stat-icon stat-icon-cyan text-white">
-                                <i class="fas fa-sitemap"></i>
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-sitemap fa-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="stat-label">Subsecretarías</h6>
-                            <h3 class="stat-value">@totalSubsecretarias</h3>
-                            <small class="stat-description text-info">Dependencias</small>
+                            <h6 class="text-muted mb-1">Subsecretarías</h6>
+                            <h3 class="mb-0 fw-bold">@totalSubsecretarias</h3>
+                            <small class="text-info">Dependencias</small>
                         </div>
                     </div>
                 </div>
@@ -89,15 +92,11 @@
         </div>
     </section>
 
-    <section class="card content-card" aria-label="Listado de secretarías">
-        <div class="card-header content-card-header d-flex justify-content-between align-items-center">
-            <div>
-                <i class="fas fa-building me-2"></i>
-                Lista de Secretarías
-            </div>
-        </div>
+    <!-- Barra de Búsqueda -->
+    <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de secretarías">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -105,76 +104,148 @@
                     <input type="text" 
                            name="searchTerm" 
                            class="form-control border-start-0" 
-                           placeholder="Buscar por nombre..."
+                           placeholder="Buscar por nombre o código..."
                            value="@ViewData["SearchTerm"]"
                            onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
                 </div>
             </form>
+        </div>
+    </section>
 
+    <!-- Tabla de Secretarías -->
+    <section class="card border-0 shadow-sm" aria-label="Listado de secretarías">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de Secretarías</h5>
+        </div>
+        <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
+                            <th>Código</th>
                             <th>Nombre</th>
                             <th>Descripción</th>
                             <th>Alcaldía</th>
                             <th>Subsecretarías</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var secretaria in Model)
+                        @if (Model.Any())
                         {
-                            <tr x-show="searchTerm === '' || 
-                                       '@secretaria.Nombre?.ToLower()'.includes(searchTerm.toLowerCase()) || 
-                                       '@secretaria.Descripcion?.ToLower()'.includes(searchTerm.toLowerCase())">
-                                <td><strong>@secretaria.Nombre</strong></td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(secretaria.Descripcion))
+                            @foreach (var secretaria in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-dark">@secretaria.Codigo</span></td>
+                                    <td><strong>@secretaria.Nombre</strong></td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(secretaria.Descripcion))
+                                        {
+                                            @(secretaria.Descripcion.Length > 100 ? secretaria.Descripcion.Substring(0, 100) + "..." : secretaria.Descripcion)
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@secretaria.NitAlcaldia</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@secretaria.CantidadSubsecretarias</span>
+                                    </td>
+                                    <td>
+                                        @if (secretaria.Activo)
+                                        {
+                                            <span class="badge bg-success">Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactiva</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@secretaria.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn-action btn-delete" 
+                                                    title="Eliminar"
+                                                    onclick="confirmDelete('@Url.Action("Delete", new { id = secretaria.Id })', '@secretaria.Nombre', '@Url.Action("Index")')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="fas fa-building fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        @(secretaria.Descripcion.Length > 100 ? secretaria.Descripcion.Substring(0, 100) + "..." : secretaria.Descripcion)
-                                    }
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">@secretaria.NitAlcaldia</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary">@secretaria.CantidadSubsecretarias</span>
-                                </td>
-                                <td>
-                                    @if (secretaria.Activo)
-                                    {
-                                        <span class="badge bg-success">Activa</span>
+                                        <p class="text-muted mb-3">No se encontraron secretarías que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
+                                        </a>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Inactiva</span>
+                                        <p class="text-muted mb-3">No hay secretarías registradas. Comience creando un nuevo registro.</p>
                                     }
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@secretaria.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" 
-                                                class="btn-action btn-delete" 
-                                                title="Eliminar"
-                                                onclick="confirmDelete('@Url.Action("Delete", new { id = secretaria.Id })', '@secretaria.Nombre', '@Url.Action("Index")')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </section>
 </main>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        /* Efectos de hover en las cards */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Efecto en las filas de la tabla */
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--theme-primary-light, rgba(13, 110, 253, 0.05));
+            transform: scale(1.01);
+        }
+
+        /* Botones de acción */
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.15);
+        }
+
+        /* Animación de badges en hover */
+        .table tbody tr td .badge {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover td .badge {
+            transform: scale(1.05);
+        }
+    </style>
 }

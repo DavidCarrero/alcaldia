@@ -54,13 +54,20 @@ public class AlcaldeRepository : IAlcaldeRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var alcalde = await _context.Alcaldes.FindAsync(id);
+        var alcalde = await _context.Alcaldes
+            .FirstOrDefaultAsync(a => a.Id == id);
+            
         if (alcalde != null)
         {
+            // Soft delete
+            alcalde.IsDeleted = true;
+            alcalde.DeletedAt = DateTime.UtcNow;
+            alcalde.DeletedBy = deletedBy;
             alcalde.Activo = false;
             alcalde.FechaActualizacion = DateTime.UtcNow;
+            
             await _context.SaveChangesAsync();
         }
     }

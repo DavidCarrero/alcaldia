@@ -3,8 +3,11 @@
 @{
     ViewData["Title"] = "Municipios";
     Layout = "_LayoutDashboard";
-    var activos = Model.Count(m => m.Activo);
-    var departamentos = Model.Select(m => m.NombreDepartamento).Distinct().Count();
+    
+    // Obtener estadísticas desde ViewBag
+    var totalMunicipios = ViewBag.TotalMunicipios ?? ViewBag.TotalCount ?? Model.Count();
+    var activos = ViewBag.Activos ?? Model.Count(m => m.Activo);
+    var departamentos = ViewBag.Departamentos ?? Model.Select(m => m.NombreDepartamento).Distinct().Count();
 }
 
 <main class="container-fluid">
@@ -42,7 +45,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="stat-label">Total Municipios</h6>
-                            <h3 class="stat-value">@Model.Count()</h3>
+                            <h3 class="stat-value">@totalMunicipios</h3>
                             <small class="stat-description text-primary">Registrados</small>
                         </div>
                     </div>
@@ -98,6 +101,7 @@
         </div>
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -112,74 +116,97 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>Código</th>
                             <th>Nombre</th>
                             <th>Departamento</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var municipio in Model)
+                        @if (Model.Any())
                         {
-                            var departamentosText = string.Join(", ", municipio.Departamentos);
-                            var cantidadDepartamentos = municipio.Departamentos.Count;
-                            <tr x-show="searchTerm === '' || 
-                                       '@municipio.Codigo'.includes(searchTerm.toUpperCase()) || 
-                                       '@municipio.Nombre?.ToLower()'.includes(searchTerm.toLowerCase()) ||
-                                       '@departamentosText.ToLower()'.includes(searchTerm.toLowerCase())">
-                                <td><span class="badge bg-secondary">@municipio.Codigo</span></td>
-                                <td>@municipio.Nombre</td>
-                                <td>
-                                    @if (cantidadDepartamentos > 0)
+                            @foreach (var municipio in Model)
+                            {
+                                var departamentosText = string.Join(", ", municipio.Departamentos);
+                                var cantidadDepartamentos = municipio.Departamentos.Count;
+                                <tr>
+                                    <td><span class="badge bg-secondary">@municipio.Codigo</span></td>
+                                    <td>@municipio.Nombre</td>
+                                    <td>
+                                        @if (cantidadDepartamentos > 0)
+                                        {
+                                            <span class="badge bg-primary" 
+                                                  style="font-size: 0.9rem; padding: 0.5rem 0.75rem;"
+                                                  title="@departamentosText">
+                                                <i class="fas fa-map-marked-alt me-1"></i>
+                                                (@cantidadDepartamentos) @(cantidadDepartamentos == 1 ? "Departamento" : "Departamentos")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-map-marked-alt me-1"></i>
+                                                Sin departamentos
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (municipio.Activo)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@municipio.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn-action btn-delete" 
+                                                    title="Eliminar"
+                                                    onclick="confirmDelete('@Url.Action("Delete", new { id = municipio.Id })', '@municipio.Nombre', '@Url.Action("Index")')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="fas fa-city fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span class="badge bg-primary" 
-                                              style="font-size: 0.9rem; padding: 0.5rem 0.75rem;"
-                                              title="@departamentosText">
-                                            <i class="fas fa-map-marked-alt me-1"></i>
-                                            (@cantidadDepartamentos) @(cantidadDepartamentos == 1 ? "Departamento" : "Departamentos")
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">
-                                            <i class="fas fa-map-marked-alt me-1"></i>
-                                            Sin departamentos
-                                        </span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (municipio.Activo)
-                                    {
-                                        <span class="badge bg-success">Activo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Inactivo</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@municipio.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <p class="text-muted mb-3">No se encontraron municipios que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
                                         </a>
-                                        <button type="button" 
-                                                class="btn-action btn-delete" 
-                                                title="Eliminar"
-                                                onclick="confirmDelete('@Url.Action("Delete", new { id = municipio.Id })', '@municipio.Nombre', '@Url.Action("Index")')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay municipios registrados. Comience creando un nuevo registro.</p>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </div>
 </main>

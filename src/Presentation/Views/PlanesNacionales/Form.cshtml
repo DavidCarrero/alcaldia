@@ -40,6 +40,7 @@
                     
                     <form asp-action="@action" asp-controller="PlanesNacionales" method="post" class="needs-validation" novalidate>
                         @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.AlcaldiaId)
                         @if (isEdit)
                         {
                             @Html.HiddenFor(m => m.Id)
@@ -55,6 +56,7 @@
                                 </label>
                                 @Html.TextBoxFor(model => model.Codigo, new { 
                                     @class = "form-control", 
+                                    id = "codigoInput",
                                     placeholder = "Código del plan",
                                     autocomplete = "off",
                                     maxlength = "20"
@@ -175,4 +177,27 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        $(document).ready(function() {
+            var isEdit = @(isEdit ? "true" : "false");
+            var codigoInput = $('#codigoInput');
+            
+            // Solo autocompletar si es creación y el campo está vacío o es 0
+            if (!isEdit && (!codigoInput.val() || codigoInput.val() === '0' || parseInt(codigoInput.val()) === 0)) {
+                $.ajax({
+                    url: '@Url.Action("GetNextId", "PlanesNacionales")',
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.nextId) {
+                            codigoInput.val(data.nextId);
+                        }
+                    },
+                    error: function() {
+                        console.log('Error al obtener siguiente ID');
+                    }
+                });
+            }
+        });
+    </script>
 }

@@ -8,7 +8,7 @@ public interface IEvidenciaRepository
     Task<Evidencia?> GetByIdAsync(int id);
     Task<Evidencia> CreateAsync(Evidencia evidencia);
     Task UpdateAsync(Evidencia evidencia);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Evidencia>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<int> CountActiveAsync();

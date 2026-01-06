@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -26,10 +27,59 @@ public class VigenciasController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var vigencias = await _vigenciaService.GetAllVigenciasAsync(incluirInactivas: true);
-        return View(vigencias);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Vigencias
+            .Where(v => !v.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(v => 
+                v.Codigo.ToLower().Contains(searchLower) || 
+                v.Nombre.ToLower().Contains(searchLower) ||
+                v.Año.ToString().Contains(searchLower));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderByDescending(v => v.Año);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(v => new VigenciaViewModel
+            {
+                Id = v.Id,
+                Codigo = v.Codigo,
+                Nombre = v.Nombre,
+                Año = v.Año,
+                FechaInicio = v.FechaInicio,
+                FechaFin = v.FechaFin,
+                Activo = v.Activo
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalVigencias = await _context.Vigencias.CountAsync(v => !v.IsDeleted);
+        ViewBag.VigenciasActivas = await _context.Vigencias.CountAsync(v => !v.IsDeleted && v.Activo);
+
+        return View(items);
     }
 
     [HttpGet]
@@ -56,6 +106,7 @@ public class VigenciasController : BaseController
             // Validar que el usuario tenga una alcaldía asignada
             if (!ValidarAlcaldiaId())
             {
+                TempData["Error"] = "No tiene una alcaldía asignada.";
                 return View("Form", model);
             }
 
@@ -69,7 +120,8 @@ public class VigenciasController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al crear vigencia");
-            ModelState.AddModelError("", ex.Message);
+            var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
+            ModelState.AddModelError("", mensajeError);
             return View("Form", model);
         }
     }
@@ -104,7 +156,8 @@ public class VigenciasController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al actualizar vigencia");
-            ModelState.AddModelError("", ex.Message);
+            var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
+            ModelState.AddModelError("", mensajeError);
             return View("Form", model);
         }
     }
@@ -160,6 +213,38 @@ public class VigenciasController : BaseController
         {
             _logger.LogError(ex, "Error al buscar vigencias");
             return Json(new List<object>());
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNextCodigo()
+    {
+        try
+        {
+            var maxId = await _context.Vigencias
+                .MaxAsync(v => (int?)v.Id) ?? 0;
+            
+            return Json(new { nextCodigo = (maxId + 1).ToString() });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextCodigo = "1" });
+        }
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Vigencias
+                .MaxAsync(v => (int?)v.Id) ?? 0;
+            
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

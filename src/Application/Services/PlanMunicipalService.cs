@@ -46,8 +46,8 @@ public class PlanMunicipalService : IPlanMunicipalService
             AlcaldeId = model.AlcaldeId,
             PlanNacionalId = model.PlanNacionalId,
             PlanDptlId = model.PlanDptlId,
-            FechaInicio = model.FechaInicio,
-            FechaFin = model.FechaFin,
+            FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null,
+            FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null,
             Activo = model.Activo,
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
@@ -80,8 +80,8 @@ public class PlanMunicipalService : IPlanMunicipalService
         planMunicipal.AlcaldeId = model.AlcaldeId;
         planMunicipal.PlanNacionalId = model.PlanNacionalId;
         planMunicipal.PlanDptlId = model.PlanDptlId;
-        planMunicipal.FechaInicio = model.FechaInicio;
-        planMunicipal.FechaFin = model.FechaFin;
+        planMunicipal.FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null;
+        planMunicipal.FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null;
         planMunicipal.Activo = model.Activo;
         planMunicipal.FechaActualizacion = DateTime.UtcNow;
 
@@ -91,7 +91,7 @@ public class PlanMunicipalService : IPlanMunicipalService
 
     public async Task DeletePlanMunicipalAsync(int id)
     {
-        await _planMunicipalRepository.DeleteAsync(id);
+        await _planMunicipalRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Plan municipal desactivado: ID {id}");
     }
 

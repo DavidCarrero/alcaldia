@@ -4,8 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Proyecto_alcaldia.Domain.Entities;
 
 [Table("ods_metas_ods")]
-public class ODSMetaODS
+public class ODSMetaODS : BaseEntity
 {
+    [Column("id")]
+    public new int Id { get; set; }
+
     [Column("ods_id")]
     public int ODSId { get; set; }
 

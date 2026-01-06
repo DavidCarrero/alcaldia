@@ -89,7 +89,7 @@ public class IndicadorService : IIndicadorService
 
     public async Task DeleteIndicadorAsync(int id)
     {
-        await _indicadorRepository.DeleteAsync(id);
+        await _indicadorRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Indicador desactivado: ID {id}");
     }
 

@@ -110,6 +110,7 @@
     <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de roles">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -143,60 +144,86 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var rol in Model)
+                        @if (Model.Any())
+                        {
+                            @foreach (var rol in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="role-icon me-2">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </div>
+                                            <span class="fw-bold">@rol.Nombre</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(rol.Descripcion))
+                                        {
+                                            <span>@rol.Descripcion</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fst-italic">Sin descripción</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary rounded-pill">3 usuarios</span>
+                                    </td>
+                                    <td>
+                                        @if (rol.Activo)
+                                        {
+                                            <span class="badge bg-success">ACTIVO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">INACTIVO</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@rol.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete" 
+                                                    onclick="confirmDelete('@Url.Action("Delete", "Roles", new { id = rol.Id })', '@rol.Nombre', '@Url.Action("Index", "Roles")')" 
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="role-icon me-2">
-                                            <i class="fas fa-shield-alt"></i>
-                                        </div>
-                                        <span class="fw-bold">@rol.Nombre</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(rol.Descripcion))
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="fas fa-user-shield fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span>@rol.Descripcion</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted fst-italic">Sin descripción</span>
-                                    }
-                                </td>
-                                <td>
-                                    <span class="badge bg-primary rounded-pill">3 usuarios</span>
-                                </td>
-                                <td>
-                                    @if (rol.Activo)
-                                    {
-                                        <span class="badge bg-success">ACTIVO</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">INACTIVO</span>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@rol.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <p class="text-muted mb-3">No se encontraron roles que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
                                         </a>
-                                        <button type="button" class="btn-action btn-delete" 
-                                                onclick="confirmDelete('@Url.Action("Delete", "Roles", new { id = rol.Id })', '@rol.Nombre', '@Url.Action("Index", "Roles")')" 
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay roles registrados. Comience creando un nuevo registro.</p>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
-    </div>
+    </section>
 
     <!-- Sección de Permisos por Módulo -->
     <div class="card border-0 shadow-sm mt-4">

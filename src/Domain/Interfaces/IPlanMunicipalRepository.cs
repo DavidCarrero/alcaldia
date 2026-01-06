@@ -8,7 +8,7 @@ public interface IPlanMunicipalRepository
     Task<PlanMunicipal?> GetByIdAsync(int id);
     Task<PlanMunicipal> CreateAsync(PlanMunicipal planMunicipal);
     Task UpdateAsync(PlanMunicipal planMunicipal);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<PlanMunicipal>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<int> CountActiveAsync();

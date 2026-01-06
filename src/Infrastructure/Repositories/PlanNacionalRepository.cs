@@ -52,13 +52,19 @@ public class PlanNacionalRepository : IPlanNacionalRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var planNacional = await GetByIdAsync(id);
+        var planNacional = await _context.PlanesNacionales.FirstOrDefaultAsync(p => p.Id == id);
+            
         if (planNacional != null)
         {
+            // Soft delete
+            planNacional.IsDeleted = true;
+            planNacional.DeletedAt = DateTime.UtcNow;
+            planNacional.DeletedBy = deletedBy;
             planNacional.Activo = false;
-            await UpdateAsync(planNacional);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

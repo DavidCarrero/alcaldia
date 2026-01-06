@@ -28,6 +28,8 @@ public class ApplicationDbContext : DbContext
     // Estructura Organizacional
     public DbSet<Secretaria> Secretarias { get; set; }
     public DbSet<Subsecretaria> Subsecretarias { get; set; }
+    public DbSet<SecretariaSubsecretaria> SecretariasSubsecretarias { get; set; }
+    public DbSet<SubsecretariaResponsable> SubsecretariasResponsables { get; set; }
     public DbSet<Responsable> Responsables { get; set; }
 
     // Configuraciones - Jerarquía Estratégica
@@ -156,6 +158,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.FechaAsignacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Activo).HasDefaultValue(true);
 
@@ -216,7 +219,10 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.HasIndex(e => new { e.AlcaldiaId, e.Codigo }).IsUnique();
+            // Índice único que excluye registros eliminados
+            entity.HasIndex(e => new { e.AlcaldiaId, e.Codigo })
+                .IsUnique()
+                .HasFilter("\"IsDeleted\" = false");
             entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Activo).HasDefaultValue(true);
 
@@ -231,7 +237,10 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.HasIndex(e => new { e.AlcaldiaId, e.Codigo }).IsUnique();
+            // Índice único que excluye registros eliminados
+            entity.HasIndex(e => new { e.AlcaldiaId, e.Codigo })
+                .IsUnique()
+                .HasFilter("\"IsDeleted\" = false");
             entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Activo).HasDefaultValue(true);
 
@@ -239,11 +248,48 @@ public class ApplicationDbContext : DbContext
                 .WithMany(a => a.Subsecretarias)
                 .HasForeignKey(ss => ss.AlcaldiaId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // SecretariaSubsecretaria (tabla intermedia muchos a muchos)
+        modelBuilder.Entity<SecretariaSubsecretaria>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
 
             entity.HasOne(ss => ss.Secretaria)
-                .WithMany(s => s.Subsecretarias)
+                .WithMany(s => s.SecretariasSubsecretarias)
                 .HasForeignKey(ss => ss.SecretariaId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(ss => ss.Subsecretaria)
+                .WithMany(sub => sub.SecretariasSubsecretarias)
+                .HasForeignKey(ss => ss.SubsecretariaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.SecretariaId, e.SubsecretariaId }).IsUnique();
+        });
+
+        // SubsecretariaResponsable (tabla intermedia muchos a muchos)
+        modelBuilder.Entity<SubsecretariaResponsable>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+
+            entity.HasOne(sr => sr.Subsecretaria)
+                .WithMany(sub => sub.SubsecretariasResponsables)
+                .HasForeignKey(sr => sr.SubsecretariaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(sr => sr.Responsable)
+                .WithMany(r => r.SubsecretariasResponsables)
+                .HasForeignKey(sr => sr.ResponsableId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.SubsecretariaId, e.ResponsableId }).IsUnique();
         });
 
         // Responsable
@@ -260,10 +306,11 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(r => r.AlcaldiaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(r => r.Secretaria)
-                .WithMany(s => s.Responsables)
-                .HasForeignKey(r => r.SecretariaId)
-                .OnDelete(DeleteBehavior.SetNull);
+            // Comentado: ahora es relación N:M con Subsecretarias
+            // entity.HasOne(r => r.Secretaria)
+            //     .WithMany(s => s.Responsables)
+            //     .HasForeignKey(r => r.SecretariaId)
+            //     .OnDelete(DeleteBehavior.SetNull);
         });
     }
 
@@ -462,7 +509,11 @@ public class ApplicationDbContext : DbContext
         // ODSMetaODS (Junction Table)
         modelBuilder.Entity<ODSMetaODS>(entity =>
         {
-            entity.HasKey(e => new { e.ODSId, e.MetaODSId });
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.FechaAsociacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
 
             entity.HasOne(om => om.ODS)
                 .WithMany(o => o.ODSMetasODS)
@@ -474,7 +525,7 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(om => om.MetaODSId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.Property(e => e.FechaAsociacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(e => new { e.ODSId, e.MetaODSId }).IsUnique();
         });
 
         // Indicador

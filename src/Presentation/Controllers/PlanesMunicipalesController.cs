@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -38,10 +39,72 @@ public class PlanesMunicipalesController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var planesMunicipales = await _planMunicipalService.GetAllPlanesMunicipalesAsync(incluirInactivas: true);
-        return View(planesMunicipales);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.PlanesMunicipales
+            .Include(p => p.Municipio)
+            .Include(p => p.Alcalde)
+            .Include(p => p.PlanNacional)
+            .Include(p => p.PlanDepartamental)
+            .Include(p => p.Alcaldia)
+            .Where(p => !p.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(p => 
+                p.Codigo.ToLower().Contains(searchLower) || 
+                p.Nombre.ToLower().Contains(searchLower) ||
+                (p.Descripcion != null && p.Descripcion.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(p => p.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new PlanMunicipalViewModel
+            {
+                Id = p.Id,
+                Codigo = p.Codigo,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                MunicipioId = p.MunicipioId,
+                NombreMunicipio = p.Municipio != null ? p.Municipio.Nombre : "",
+                AlcaldeId = p.AlcaldeId,
+                NombreAlcalde = p.Alcalde != null ? p.Alcalde.NombreCompleto : "",
+                PlanNacionalId = p.PlanNacionalId,
+                NombrePlanNacional = p.PlanNacional != null ? p.PlanNacional.Nombre : "",
+                PlanDptlId = p.PlanDptlId,
+                NombrePlanDepartamental = p.PlanDepartamental != null ? p.PlanDepartamental.Nombre : "",
+                AlcaldiaId = p.AlcaldiaId,
+                NitAlcaldia = p.Alcaldia != null ? p.Alcaldia.Nit : ""
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalPlanesMunicipales = totalCount;
+        ViewBag.TotalConPlanNacional = await _context.PlanesMunicipales.Where(p => !p.IsDeleted && p.PlanNacionalId != null).CountAsync();
+        ViewBag.TotalConPlanDepartamental = await _context.PlanesMunicipales.Where(p => !p.IsDeleted && p.PlanDptlId != null).CountAsync();
+
+        return View(items);
     }
 
     [HttpGet]
@@ -252,6 +315,26 @@ public class PlanesMunicipalesController : BaseController
         {
             _logger.LogError(ex, "Error al buscar planes municipales");
             return Json(new List<object>());
+        }
+    }
+
+    // GET: PlanesMunicipales/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.PlanesMunicipales
+                .Where(p => !p.IsDeleted)
+                .Select(p => p.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

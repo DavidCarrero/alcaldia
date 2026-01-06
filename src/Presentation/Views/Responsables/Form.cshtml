@@ -25,16 +25,62 @@
                 <div class="card-body p-4">
                     <form asp-action="@action" asp-controller="Responsables" method="post" class="needs-validation" novalidate>
                         @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.AlcaldiaId)
                         @if (isEdit)
                         {
                             @Html.HiddenFor(m => m.Id)
                         }
                         
                         <div class="row g-3">
-                            <!-- Nombre Completo -->
-                            <div class="col-md-6">
+                            <!-- Código -->
+                            <div class="col-md-4">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-user me-2"></i>
+                                    <i class="fas fa-barcode me-1"></i>
+                                    Código
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Id, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Código único",
+                                    autocomplete = "off",
+                                    id = "codigoInput",
+                                    type = "number"
+                                })
+                                @Html.ValidationMessageFor(model => model.Id, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Tipo de Documento -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-id-card me-1"></i>
+                                    @Html.DisplayNameFor(model => model.TipoDocumento)
+                                </label>
+                                @Html.DropDownListFor(model => model.TipoDocumento, 
+                                    new SelectList(new[] { "CC", "CE", "TI", "PP" }), 
+                                    "Seleccione...", 
+                                    new { @class = "form-select" })
+                                @Html.ValidationMessageFor(model => model.TipoDocumento, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Número de Identificación -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    @Html.DisplayNameFor(model => model.NumeroIdentificacion)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.NumeroIdentificacion, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Número de identificación",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.NumeroIdentificacion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre Completo -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i>
                                     @Html.DisplayNameFor(model => model.NombreCompleto)
                                     <span class="text-danger">*</span>
                                 </label>
@@ -46,38 +92,10 @@
                                 @Html.ValidationMessageFor(model => model.NombreCompleto, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
 
-                            <!-- Tipo de Documento -->
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-id-card me-2"></i>
-                                    @Html.DisplayNameFor(model => model.TipoDocumento)
-                                </label>
-                                @Html.DropDownListFor(model => model.TipoDocumento, 
-                                    new SelectList(new[] { "CC", "CE", "TI", "PP" }), 
-                                    "Seleccione...", 
-                                    new { @class = "form-select" })
-                                @Html.ValidationMessageFor(model => model.TipoDocumento, "", new { @class = "text-danger small mt-1 d-block" })
-                            </div>
-
-                            <!-- Número de Identificación -->
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-barcode me-2"></i>
-                                    @Html.DisplayNameFor(model => model.NumeroIdentificacion)
-                                    <span class="text-danger">*</span>
-                                </label>
-                                @Html.TextBoxFor(model => model.NumeroIdentificacion, new { 
-                                    @class = "form-control", 
-                                    placeholder = "Número",
-                                    autocomplete = "off"
-                                })
-                                @Html.ValidationMessageFor(model => model.NumeroIdentificacion, "", new { @class = "text-danger small mt-1 d-block" })
-                            </div>
-
                             <!-- Cargo -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-briefcase me-2"></i>
+                                    <i class="fas fa-briefcase me-1"></i>
                                     @Html.DisplayNameFor(model => model.Cargo)
                                 </label>
                                 @Html.TextBoxFor(model => model.Cargo, new { 
@@ -91,7 +109,7 @@
                             <!-- Tipo de Responsable -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-user-tag me-2"></i>
+                                    <i class="fas fa-user-tag me-1"></i>
                                     @Html.DisplayNameFor(model => model.TipoResponsable)
                                 </label>
                                 @Html.DropDownListFor(model => model.TipoResponsable, 
@@ -104,12 +122,12 @@
                             <!-- Teléfono -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-phone me-2"></i>
+                                    <i class="fas fa-phone me-1"></i>
                                     @Html.DisplayNameFor(model => model.Telefono)
                                 </label>
                                 @Html.TextBoxFor(model => model.Telefono, new { 
                                     @class = "form-control", 
-                                    placeholder = "Teléfono",
+                                    placeholder = "Teléfono de contacto",
                                     autocomplete = "off"
                                 })
                                 @Html.ValidationMessageFor(model => model.Telefono, "", new { @class = "text-danger small mt-1 d-block" })
@@ -118,7 +136,7 @@
                             <!-- Email -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-envelope me-2"></i>
+                                    <i class="fas fa-envelope me-1"></i>
                                     @Html.DisplayNameFor(model => model.Email)
                                 </label>
                                 @Html.TextBoxFor(model => model.Email, new { 
@@ -132,24 +150,18 @@
 
 
 
-                            <!-- Secretaría (Opcional) -->
-                            @{
-                                ViewData["fieldName"] = "SecretariaId";
-                                ViewData["label"] = "Secretaría (Opcional)";
-                                ViewData["searchUrl"] = "/Secretarias/Search";
-                                ViewData["displayField"] = "codigo";
-                                ViewData["secondaryField"] = "nombre";
-                                ViewData["icon"] = "fa-building";
-                                ViewData["placeholder"] = "Escribe y presiona Enter para buscar...";
-                                ViewData["required"] = "False";
-                                
-                                if (isEdit && Model?.SecretariaId > 0)
-                                {
-                                    ViewData["initialValue"] = Model.SecretariaId.ToString();
-                                    ViewData["initialDisplay"] = Model.CodigoSecretaria;
+                            <!-- Subsecretarías -->
+                            <div class="col-12">
+                                @{
+                                    ViewData["fieldName"] = "subsecretariasIds";
+                                    ViewData["label"] = "Subsecretarías";
+                                    ViewData["options"] = ViewBag.Subsecretarias;
+                                    ViewData["selectedValues"] = ViewBag.SubsecretariasIds;
+                                    ViewData["placeholder"] = "Seleccione una o más subsecretarías";
+                                    ViewData["icon"] = "fa-sitemap";
                                 }
-                            }
-                            @await Html.PartialAsync("_SearchableDropdown")
+                                @await Html.PartialAsync("_SimpleMultiDropdown")
+                            </div>
 
                             <!-- Estado Activo -->
                             <div class="col-12">
@@ -181,4 +193,28 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <script>
+        $(document).ready(function() {
+            var isEdit = @(isEdit ? "true" : "false");
+            var codigoInput = $('#codigoInput');
+            
+            // Solo autocompletar si es creación y el campo está vacío o es 0
+            if (!isEdit && (!codigoInput.val() || codigoInput.val() === '0' || parseInt(codigoInput.val()) === 0)) {
+                $.ajax({
+                    url: '@Url.Action("GetNextId", "Responsables")',
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.nextId) {
+                            codigoInput.val(data.nextId);
+                        }
+                    },
+                    error: function() {
+                        console.log('Error al obtener siguiente ID');
+                    }
+                });
+            }
+        });
+    </script>
 }

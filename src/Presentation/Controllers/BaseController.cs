@@ -101,4 +101,133 @@ public class BaseController : Controller
     {
         return id.HasValue && id.Value > 0 ? id.Value : null;
     }
+
+    /// <summary>
+    /// Obtiene el ID del usuario actual autenticado
+    /// </summary>
+    /// <returns>ID del usuario como string, o "Sistema" si no está autenticado</returns>
+    protected async Task<string> ObtenerUsuarioIdActual()
+    {
+        var userEmail = User.FindFirstValue(ClaimTypes.Email);
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            var usuario = await _context.Usuarios
+                .Where(u => u.CorreoElectronico == userEmail)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+            
+            return usuario > 0 ? usuario.ToString() : "Sistema";
+        }
+        return "Sistema";
+    }
+
+    /// <summary>
+    /// Obtiene el próximo código consecutivo para una tabla
+    /// </summary>
+    /// <param name="tableName">Nombre de la tabla</param>
+    /// <returns>El próximo ID disponible</returns>
+    protected async Task<int> GetNextCodigoAsync(string tableName)
+    {
+        var maxId = 0;
+        switch (tableName.ToLower())
+        {
+            case "usuarios":
+                maxId = await _context.Usuarios.MaxAsync(x => (int?)x.Id) ?? 0;
+                break;
+            case "roles":
+                maxId = await _context.Roles.MaxAsync(x => (int?)x.Id) ?? 0;
+                break;
+            case "alcaldias":
+                maxId = await _context.Alcaldias.MaxAsync(x => (int?)x.Id) ?? 0;
+                break;
+            case "secretarias":
+                maxId = await _context.Secretarias.MaxAsync(x => (int?)x.Id) ?? 0;
+                break;
+            case "subsecretarias":
+                maxId = await _context.Subsecretarias.MaxAsync(x => (int?)x.Id) ?? 0;
+                break;
+            case "responsables":
+                maxId = await _context.Responsables.MaxAsync(x => (int?)x.Id) ?? 0;
+                break;
+            default:
+                throw new ArgumentException($"Tabla no soportada: {tableName}");
+        }
+        return maxId + 1;
+    }
+
+    /// <summary>
+    /// Maneja errores de base de datos y retorna mensajes amigables
+    /// </summary>
+    /// <param name="ex">Excepción capturada</param>
+    /// <returns>Mensaje de error amigable para el usuario</returns>
+    protected string ObtenerMensajeErrorBaseDatos(Exception ex)
+    {
+        if (ex is DbUpdateException dbEx)
+        {
+            var innerException = dbEx.InnerException?.Message ?? string.Empty;
+            
+            // Detectar errores comunes de PostgreSQL
+            if (innerException.Contains("duplicate key") || innerException.Contains("23505"))
+            {
+                if (innerException.Contains("codigo"))
+                    return "Ya existe un registro con ese código. Por favor, use un código diferente";
+                if (innerException.Contains("nombre"))
+                    return "Ya existe un registro con ese nombre. Por favor, use un nombre diferente";
+                if (innerException.Contains("correo") || innerException.Contains("email"))
+                    return "Ya existe un registro con ese correo electrónico";
+                
+                return "Ya existe un registro con esos datos. Por favor, verifique la información ingresada";
+            }
+            
+            if (innerException.Contains("foreign key") || innerException.Contains("23503"))
+            {
+                return "No se puede completar la operación porque existen registros relacionados";
+            }
+            
+            if (innerException.Contains("violates check constraint") || innerException.Contains("23514"))
+            {
+                return "Los datos ingresados no cumplen con las restricciones de validación";
+            }
+            
+            if (innerException.Contains("violates not-null constraint") || innerException.Contains("23502"))
+            {
+                return "Faltan campos requeridos. Por favor, complete todos los campos obligatorios";
+            }
+        }
+        
+        return "Ocurrió un error al procesar la solicitud. Por favor, intente nuevamente";
+    }
+
+    /// <summary>
+    /// Configura el ViewBag con los datos de paginación para la vista
+    /// </summary>
+    /// <param name="pageIndex">Página actual (1-indexed)</param>
+    /// <param name="pageSize">Tamaño de página</param>
+    /// <param name="totalCount">Total de elementos</param>
+    protected void ConfigurarPaginacion(int pageIndex, int pageSize, int totalCount)
+    {
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        
+        ViewBag.PageIndex = pageIndex;
+        ViewBag.TotalPages = totalPages;
+        ViewBag.PageSize = pageSize;
+        ViewBag.TotalCount = totalCount;
+        ViewBag.FirstItemIndex = totalCount > 0 ? (pageIndex - 1) * pageSize + 1 : 0;
+        ViewBag.LastItemIndex = Math.Min(pageIndex * pageSize, totalCount);
+        ViewBag.HasPreviousPage = pageIndex > 1;
+        ViewBag.HasNextPage = pageIndex < totalPages;
+    }
+
+    /// <summary>
+    /// Valida y normaliza los parámetros de paginación
+    /// </summary>
+    /// <param name="page">Página solicitada</param>
+    /// <param name="pageSize">Tamaño de página solicitado</param>
+    /// <returns>Tupla con página y tamaño validados</returns>
+    protected (int page, int pageSize) ValidarParametrosPaginacion(int page, int pageSize)
+    {
+        page = Math.Max(1, page);
+        pageSize = new[] { 5, 10, 20, 50, 100 }.Contains(pageSize) ? pageSize : 5;
+        return (page, pageSize);
+    }
 }

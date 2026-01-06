@@ -75,10 +75,10 @@ public class SecretariaService : ISecretariaService
         _logger.LogInformation($"Secretaría actualizada: {secretaria.Nombre}");
     }
 
-    public async Task DeleteSecretariaAsync(int id)
+    public async Task DeleteSecretariaAsync(int id, string deletedBy)
     {
-        await _secretariaRepository.DeleteAsync(id);
-        _logger.LogInformation($"Secretaría desactivada: ID {id}");
+        await _secretariaRepository.DeleteAsync(id, deletedBy);
+        _logger.LogInformation($"Secretaría desactivada: ID {id} por usuario {deletedBy}");
     }
 
     public async Task<IEnumerable<SecretariaViewModel>> SearchSecretariasAsync(string searchTerm)
@@ -109,7 +109,7 @@ public class SecretariaService : ISecretariaService
             AlcaldiaId = secretaria.AlcaldiaId,
             NitAlcaldia = secretaria.Alcaldia?.Nit,
             Activo = secretaria.Activo,
-            CantidadSubsecretarias = secretaria.Subsecretarias?.Count ?? 0
+            CantidadSubsecretarias = secretaria.SecretariasSubsecretarias?.Count(ss => !ss.IsDeleted) ?? 0
         };
     }
 }

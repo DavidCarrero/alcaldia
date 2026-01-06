@@ -1,0 +1,264 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.VigenciaViewModel>
+
+@{
+    ViewData["Title"] = "Vigencias";
+    Layout = "_LayoutDashboard";
+    
+    // Obtener estadísticas desde ViewBag
+    var totalVigencias = ViewBag.TotalVigencias ?? ViewBag.TotalCount ?? Model.Count();
+    var activas = ViewBag.Activas ?? Model.Count(v => v.Activo);
+    var vigenciasAnoActual = ViewBag.VigenciasAnoActual ?? Model.Count(v => v.Año == DateTime.Now.Year);
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Configuración", null),
+        ("Vigencias", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <header class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Gestión de Vigencias</h2>
+            <p class="text-muted">Administración de vigencias y períodos fiscales</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nueva Vigencia
+            </a>
+        </div>
+    </header>
+
+    <!-- Tarjetas de Estadísticas -->
+    <section class="row g-4 mb-4" aria-label="Estadísticas de vigencias">
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-primary text-white">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Total Vigencias</h6>
+                            <h3 class="stat-value">@totalVigencias</h3>
+                            <small class="stat-description text-primary">Registradas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-success text-white">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Activas</h6>
+                            <h3 class="stat-value">@activas</h3>
+                            <small class="stat-description text-success">En vigencia</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon stat-icon-info text-white">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="stat-label">Año Actual</h6>
+                            <h3 class="stat-value">@DateTime.Now.Year</h3>
+                            <small class="stat-description text-info">@vigenciasAnoActual vigencias</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card content-card" aria-label="Listado de vigencias">
+        <div class="card-header content-card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-calendar-alt me-2"></i>
+                Lista de Vigencias
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="vigenciasTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.FirstOrDefault()!.Codigo)</th>
+                            <th>@Html.DisplayNameFor(model => model.FirstOrDefault()!.Nombre)</th>
+                            <th>@Html.DisplayNameFor(model => model.FirstOrDefault()!.Año)</th>
+                            <th>@Html.DisplayNameFor(model => model.FirstOrDefault()!.FechaInicio)</th>
+                            <th>@Html.DisplayNameFor(model => model.FirstOrDefault()!.FechaFin)</th>
+                            <th>@Html.DisplayNameFor(model => model.FirstOrDefault()!.Activo)</th>
+                            <th class="text-center" style="width: 150px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            @foreach (var vigencia in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-uppercase">@vigencia.Codigo</strong>
+                                    </td>
+                                    <td>@vigencia.Nombre</td>
+                                    <td>
+                                        <span class="badge bg-primary">@vigencia.Año</span>
+                                    </td>
+                                    <td>
+                                        @if (vigencia.FechaInicio.HasValue)
+                                        {
+                                            <small>@vigencia.FechaInicio.Value.ToString("dd/MM/yyyy")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (vigencia.FechaFin.HasValue)
+                                        {
+                                            <small>@vigencia.FechaFin.Value.ToString("dd/MM/yyyy")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (vigencia.Activo)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Activa
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times-circle me-1"></i>Inactiva
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Edit" asp-route-id="@vigencia.Id" 
+                                               class="btn btn-outline-primary" 
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger btn-delete" 
+                                                    data-id="@vigencia.Id"
+                                                    data-name="@vigencia.Nombre"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="fas fa-calendar-alt fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
+                                    {
+                                        <p class="text-muted mb-3">No se encontraron vigencias que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay vigencias registradas. Comience creando un nuevo registro.</p>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Inicializar DataTable
+            $('#vigenciasTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                order: [[2, 'desc']], // Ordenar por año descendente
+                pageLength: 25,
+                responsive: true
+            });
+
+            // Manejar eliminación
+            $('.btn-delete').on('click', function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+
+                Swal.fire({
+                    title: '¿Está seguro?',
+                    html: `¿Desea eliminar la vigencia <strong>${name}</strong>?<br><small class="text-muted">Esta acción no se puede deshacer.</small>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("Delete", "Vigencias")/' + id,
+                            type: 'POST',
+                            data: {
+                                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    showNotification('success', response.message);
+                                    setTimeout(() => location.reload(), 1500);
+                                } else {
+                                    showNotification('error', response.message);
+                                }
+                            },
+                            error: function() {
+                                showNotification('error', 'Error al eliminar la vigencia');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -50,13 +50,19 @@ public class ProyectoRepository : IProyectoRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var proyecto = await GetByIdAsync(id);
+        var proyecto = await _context.Proyectos.FirstOrDefaultAsync(p => p.Id == id);
+            
         if (proyecto != null)
         {
+            // Soft delete
+            proyecto.IsDeleted = true;
+            proyecto.DeletedAt = DateTime.UtcNow;
+            proyecto.DeletedBy = deletedBy;
             proyecto.Activo = false;
-            await UpdateAsync(proyecto);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

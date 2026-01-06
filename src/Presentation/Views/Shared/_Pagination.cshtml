@@ -1,0 +1,308 @@
+@model dynamic
+@{
+    int pageIndex = ViewBag.PageIndex ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int pageSize = ViewBag.PageSize ?? 5;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    int firstItem = ViewBag.FirstItemIndex ?? 0;
+    int lastItem = ViewBag.LastItemIndex ?? 0;
+    bool hasPreviousPage = ViewBag.HasPreviousPage ?? false;
+    bool hasNextPage = ViewBag.HasNextPage ?? false;
+    string searchTerm = ViewData["SearchTerm"]?.ToString() ?? "";
+    
+    var pageSizes = new[] { 5, 10, 20, 50, 100 };
+}
+
+@if (totalCount > 0)
+{
+    <div class="pagination-wrapper mt-4 p-3 bg-light rounded-3">
+        <div class="row align-items-center g-3">
+            <!-- Información de registros -->
+            <div class="col-lg-4 col-md-12">
+                <div class="pagination-info d-flex align-items-center">
+                    <div class="info-icon me-2">
+                        <i class="fas fa-list-ul text-primary"></i>
+                    </div>
+                    <span class="text-muted">
+                        Mostrando <span class="badge bg-primary">@firstItem</span> - <span class="badge bg-primary">@lastItem</span> de <span class="fw-bold text-dark">@totalCount</span> registros
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Selector de tamaño de página -->
+            <div class="col-lg-3 col-md-6">
+                <div class="page-size-wrapper d-flex align-items-center justify-content-lg-center">
+                    <label class="me-2 text-muted small mb-0 text-nowrap">
+                        <i class="fas fa-filter me-1"></i>Mostrar:
+                    </label>
+                    <select class="form-select form-select-sm page-size-select" id="pageSizeSelector">
+                        @foreach (var size in pageSizes)
+                        {
+                            <option value="@size" selected="@(pageSize == size)">@size registros</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Controles de paginación -->
+            <div class="col-lg-5 col-md-6">
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Navegación de páginas">
+                        <ul class="pagination pagination-modern justify-content-lg-end justify-content-center mb-0">
+                            <!-- Primera página -->
+                            <li class="page-item @(pageIndex == 1 ? "disabled" : "")">
+                                <a class="page-link page-link-nav" href="@GetPageUrl(1)" aria-label="Primera" title="Primera página">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            
+                            <!-- Anterior -->
+                            <li class="page-item @(!hasPreviousPage ? "disabled" : "")">
+                                <a class="page-link page-link-nav" href="@GetPageUrl(pageIndex - 1)" aria-label="Anterior" title="Página anterior">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            @{
+                                var pageNumbers = GetPageNumbers(pageIndex, totalPages, 5);
+                                bool showStartEllipsis = pageNumbers.First() > 1;
+                                bool showEndEllipsis = pageNumbers.Last() < totalPages;
+                            }
+
+                            @if (showStartEllipsis)
+                            {
+                                <li class="page-item disabled d-none d-sm-block">
+                                    <span class="page-link page-ellipsis">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </span>
+                                </li>
+                            }
+
+                            @foreach (var pageNum in pageNumbers)
+                            {
+                                <li class="page-item @(pageNum == pageIndex ? "active" : "")">
+                                    <a class="page-link page-link-number" href="@GetPageUrl(pageNum)">@pageNum</a>
+                                </li>
+                            }
+
+                            @if (showEndEllipsis)
+                            {
+                                <li class="page-item disabled d-none d-sm-block">
+                                    <span class="page-link page-ellipsis">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </span>
+                                </li>
+                            }
+
+                            <!-- Siguiente -->
+                            <li class="page-item @(!hasNextPage ? "disabled" : "")">
+                                <a class="page-link page-link-nav" href="@GetPageUrl(pageIndex + 1)" aria-label="Siguiente" title="Página siguiente">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                            
+                            <!-- Última página -->
+                            <li class="page-item @(pageIndex == totalPages ? "disabled" : "")">
+                                <a class="page-link page-link-nav" href="@GetPageUrl(totalPages)" aria-label="Última" title="Última página">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+                else
+                {
+                    <div class="text-center text-lg-end">
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-file-alt me-1"></i>Página única
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    /* Contenedor principal de paginación */
+    .pagination-wrapper {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .pagination-wrapper:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    /* Info icon */
+    .info-icon {
+        width: 32px;
+        height: 32px;
+        background: rgba(var(--bs-primary-rgb), 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Selector de tamaño de página */
+    .page-size-select {
+        border-radius: 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+        padding: 0.4rem 2rem 0.4rem 0.75rem;
+        font-size: 0.875rem;
+        background-color: white;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        min-width: 130px;
+    }
+    
+    .page-size-select:hover {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.1);
+    }
+    
+    .page-size-select:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.2);
+    }
+    
+    /* Estilos modernos de paginación */
+    .pagination-modern {
+        gap: 4px;
+    }
+    
+    .pagination-modern .page-item .page-link {
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        min-width: 38px;
+        text-align: center;
+        color: #495057;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    .pagination-modern .page-item .page-link:hover:not(.disabled) {
+        background: var(--bs-primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.3);
+    }
+    
+    .pagination-modern .page-item.active .page-link {
+        background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-primary) 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.4);
+        transform: scale(1.05);
+    }
+    
+    .pagination-modern .page-item.disabled .page-link {
+        background: #e9ecef;
+        color: #adb5bd;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    
+    .pagination-modern .page-link-nav {
+        padding: 0.5rem 0.6rem;
+    }
+    
+    .pagination-modern .page-ellipsis {
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #6c757d;
+        cursor: default;
+    }
+    
+    /* Animaciones */
+    .pagination-modern .page-item {
+        animation: fadeInUp 0.3s ease forwards;
+        opacity: 0;
+    }
+    
+    .pagination-modern .page-item:nth-child(1) { animation-delay: 0.05s; }
+    .pagination-modern .page-item:nth-child(2) { animation-delay: 0.1s; }
+    .pagination-modern .page-item:nth-child(3) { animation-delay: 0.15s; }
+    .pagination-modern .page-item:nth-child(4) { animation-delay: 0.2s; }
+    .pagination-modern .page-item:nth-child(5) { animation-delay: 0.25s; }
+    .pagination-modern .page-item:nth-child(6) { animation-delay: 0.3s; }
+    .pagination-modern .page-item:nth-child(7) { animation-delay: 0.35s; }
+    .pagination-modern .page-item:nth-child(8) { animation-delay: 0.4s; }
+    .pagination-modern .page-item:nth-child(9) { animation-delay: 0.45s; }
+    .pagination-modern .page-item:nth-child(10) { animation-delay: 0.5s; }
+    
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Responsive */
+    @@media (max-width: 576px) {
+        .pagination-modern .page-link {
+            padding: 0.4rem 0.5rem;
+            min-width: 32px;
+            font-size: 0.8rem;
+        }
+        
+        .page-size-select {
+            min-width: 110px;
+        }
+    }
+</style>
+
+@functions {
+    string GetPageUrl(int pageNumber)
+    {
+        var routeValues = new Dictionary<string, object?>
+        {
+            { "page", pageNumber },
+            { "pageSize", ViewBag.PageSize ?? 5 }
+        };
+        
+        var searchTerm = ViewData["SearchTerm"]?.ToString();
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            routeValues.Add("searchTerm", searchTerm);
+        }
+
+        return Url.Action("Index", routeValues) ?? "#";
+    }
+
+    IEnumerable<int> GetPageNumbers(int currentPage, int totalPages, int maxPages)
+    {
+        int startPage = Math.Max(1, currentPage - maxPages / 2);
+        int endPage = Math.Min(totalPages, startPage + maxPages - 1);
+        
+        if (endPage - startPage + 1 < maxPages)
+        {
+            startPage = Math.Max(1, endPage - maxPages + 1);
+        }
+
+        return Enumerable.Range(startPage, endPage - startPage + 1);
+    }
+}
+
+<script>
+    document.getElementById('pageSizeSelector')?.addEventListener('change', function() {
+        const pageSize = this.value;
+        const searchTerm = '@Html.Raw(searchTerm)';
+        let url = '@Url.Action("Index")?page=1&pageSize=' + pageSize;
+        if (searchTerm) {
+            url += '&searchTerm=' + encodeURIComponent(searchTerm);
+        }
+        window.location.href = url;
+    });
+</script>

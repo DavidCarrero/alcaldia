@@ -73,7 +73,7 @@ public class MunicipioService : IMunicipioService
 
     public async Task DeleteMunicipioAsync(int id)
     {
-        await _municipioRepository.DeleteAsync(id);
+        await _municipioRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Municipio desactivado: ID {id}");
     }
 

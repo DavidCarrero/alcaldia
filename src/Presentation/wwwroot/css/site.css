@@ -8,6 +8,43 @@ html {
   }
 }
 
+/* Quitar puntos de lista globalmente */
+li {
+  list-style: none;
+}
+
+/* Alinear iconos con mensajes de error en alerts */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.alert > i {
+  flex-shrink: 0;
+  margin-top: 3px;
+  font-size: 1.1rem;
+}
+
+.alert .validation-summary-errors,
+.alert > div,
+.alert > ul {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.alert .validation-summary-errors ul,
+.alert ul {
+  margin-bottom: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.alert .btn-close {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }

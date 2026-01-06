@@ -8,7 +8,7 @@ public interface ISecretariaRepository
     Task<Secretaria?> GetByIdAsync(int id);
     Task<Secretaria> CreateAsync(Secretaria secretaria);
     Task UpdateAsync(Secretaria secretaria);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Secretaria>> SearchAsync(string searchTerm);
     Task<IEnumerable<Secretaria>> GetByAlcaldiaIdAsync(int alcaldiaId);
 }

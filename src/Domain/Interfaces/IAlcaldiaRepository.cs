@@ -8,7 +8,7 @@ public interface IAlcaldiaRepository
     Task<Alcaldia?> GetByIdAsync(int id);
     Task<Alcaldia> CreateAsync(Alcaldia alcaldia);
     Task UpdateAsync(Alcaldia alcaldia);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Alcaldia>> SearchAsync(string searchTerm);
     Task<bool> NitExistsAsync(string nit, int? excludeId = null);
     Task<int> CountActiveAsync();

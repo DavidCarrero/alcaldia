@@ -17,6 +17,7 @@ public class DepartamentoRepository : IDepartamentoRepository
     public async Task<IEnumerable<Departamento>> GetAllAsync(bool incluirInactivos = false)
     {
         var query = _context.Departamentos
+            .Where(d => !d.IsDeleted)
             .Include(d => d.Municipios)
             .AsQueryable();
 
@@ -48,13 +49,18 @@ public class DepartamentoRepository : IDepartamentoRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var departamento = await GetByIdAsync(id);
+        var departamento = await _context.Departamentos.FirstOrDefaultAsync(d => d.Id == id);
         if (departamento != null)
         {
+            // Soft delete
+            departamento.IsDeleted = true;
+            departamento.DeletedAt = DateTime.UtcNow;
+            departamento.DeletedBy = deletedBy;
             departamento.Activo = false;
-            await UpdateAsync(departamento);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

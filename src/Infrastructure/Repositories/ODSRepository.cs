@@ -17,6 +17,7 @@ public class ODSRepository : IODSRepository
     public async Task<IEnumerable<ODS>> GetAllAsync(bool incluirInactivos = false)
     {
         var query = _context.ODS
+            .Where(o => !o.IsDeleted) // SIEMPRE excluir eliminados
             .Include(o => o.Alcaldia)
                 .ThenInclude(a => a.Municipio)
             .Include(o => o.ODSMetasODS)
@@ -34,6 +35,7 @@ public class ODSRepository : IODSRepository
     public async Task<ODS?> GetByIdAsync(int id)
     {
         return await _context.ODS
+            .Where(o => !o.IsDeleted)
             .Include(o => o.Alcaldia)
                 .ThenInclude(a => a.Municipio)
             .Include(o => o.ODSMetasODS)
@@ -54,19 +56,26 @@ public class ODSRepository : IODSRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var ods = await GetByIdAsync(id);
+        var ods = await _context.ODS.FirstOrDefaultAsync(o => o.Id == id);
+            
         if (ods != null)
         {
+            // Soft delete
+            ods.IsDeleted = true;
+            ods.DeletedAt = DateTime.UtcNow;
+            ods.DeletedBy = deletedBy;
             ods.Activo = false;
-            await UpdateAsync(ods);
+            
+            await _context.SaveChangesAsync();
         }
     }
 
     public async Task<IEnumerable<ODS>> SearchAsync(string searchTerm)
     {
         return await _context.ODS
+            .Where(o => !o.IsDeleted)
             .Include(o => o.Alcaldia)
                 .ThenInclude(a => a.Municipio)
             .Include(o => o.ODSMetasODS)
@@ -80,6 +89,7 @@ public class ODSRepository : IODSRepository
     public async Task<bool> CodigoExistsAsync(string codigo, int alcaldiaId, int? excludeId = null)
     {
         return await _context.ODS
+            .Where(o => !o.IsDeleted)
             .AnyAsync(o => o.Codigo == codigo && 
                           o.AlcaldiaId == alcaldiaId && 
                           (!excludeId.HasValue || o.Id != excludeId.Value));
@@ -87,6 +97,6 @@ public class ODSRepository : IODSRepository
 
     public async Task<int> CountActiveAsync()
     {
-        return await _context.ODS.CountAsync(o => o.Activo);
+        return await _context.ODS.CountAsync(o => !o.IsDeleted && o.Activo);
     }
 }

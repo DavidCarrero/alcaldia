@@ -54,13 +54,19 @@ public class ActividadRepository : IActividadRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var actividad = await GetByIdAsync(id);
+        var actividad = await _context.Actividades.FirstOrDefaultAsync(a => a.Id == id);
+            
         if (actividad != null)
         {
+            // Soft delete
+            actividad.IsDeleted = true;
+            actividad.DeletedAt = DateTime.UtcNow;
+            actividad.DeletedBy = deletedBy;
             actividad.Activo = false;
-            await UpdateAsync(actividad);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

@@ -43,8 +43,12 @@ public class VigenciaService : IVigenciaService
             Nombre = model.Nombre,
             Descripcion = model.Descripcion,
             Año = model.Año,
-            FechaInicio = model.FechaInicio,
-            FechaFin = model.FechaFin,
+            FechaInicio = model.FechaInicio.HasValue 
+                ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) 
+                : null,
+            FechaFin = model.FechaFin.HasValue 
+                ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) 
+                : null,
             Activo = model.Activo,
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
@@ -74,8 +78,12 @@ public class VigenciaService : IVigenciaService
         vigencia.Nombre = model.Nombre;
         vigencia.Descripcion = model.Descripcion;
         vigencia.Año = model.Año;
-        vigencia.FechaInicio = model.FechaInicio;
-        vigencia.FechaFin = model.FechaFin;
+        vigencia.FechaInicio = model.FechaInicio.HasValue 
+            ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) 
+            : null;
+        vigencia.FechaFin = model.FechaFin.HasValue 
+            ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) 
+            : null;
         vigencia.Activo = model.Activo;
         vigencia.FechaActualizacion = DateTime.UtcNow;
 
@@ -85,7 +93,7 @@ public class VigenciaService : IVigenciaService
 
     public async Task DeleteVigenciaAsync(int id)
     {
-        await _vigenciaRepository.DeleteAsync(id);
+        await _vigenciaRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Vigencia desactivada: ID {id}");
     }
 

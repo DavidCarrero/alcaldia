@@ -45,9 +45,13 @@ public class Responsable : BaseEntity
     [Column("tipo_responsable")]
     public string? TipoResponsable { get; set; }
 
-    [Column("secretaria_id")]
-    public int? SecretariaId { get; set; }
+    // Comentado para usar relación N:M con Subsecretarias
+    // [Column("secretaria_id")]
+    // public int? SecretariaId { get; set; }
 
-    [ForeignKey("SecretariaId")]
-    public Secretaria? Secretaria { get; set; }
+    // [ForeignKey("SecretariaId")]
+    // public Secretaria? Secretaria { get; set; }
+
+    // Relaciones N:M
+    public ICollection<SubsecretariaResponsable> SubsecretariasResponsables { get; set; } = new List<SubsecretariaResponsable>();
 }

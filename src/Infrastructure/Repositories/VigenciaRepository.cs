@@ -50,13 +50,19 @@ public class VigenciaRepository : IVigenciaRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var vigencia = await GetByIdAsync(id);
+        var vigencia = await _context.Vigencias.FirstOrDefaultAsync(v => v.Id == id);
+            
         if (vigencia != null)
         {
+            // Soft delete
+            vigencia.IsDeleted = true;
+            vigencia.DeletedAt = DateTime.UtcNow;
+            vigencia.DeletedBy = deletedBy;
             vigencia.Activo = false;
-            await UpdateAsync(vigencia);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

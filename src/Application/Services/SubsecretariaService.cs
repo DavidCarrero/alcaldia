@@ -77,12 +77,12 @@ public class SubsecretariaService : ISubsecretariaService
         }
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
         try
         {
-            await _subsecretariaRepository.DeleteAsync(id);
-            _logger.LogInformation("Subsecretaría eliminada exitosamente con ID {Id}", id);
+            await _subsecretariaRepository.DeleteAsync(id, deletedBy);
+            _logger.LogInformation("Subsecretaría eliminada exitosamente con ID {Id} por usuario {DeletedBy}", id, deletedBy);
         }
         catch (Exception ex)
         {
@@ -125,8 +125,11 @@ public class SubsecretariaService : ISubsecretariaService
         {
             var totalActivas = await _subsecretariaRepository.GetTotalActivasAsync();
             var subsecretarias = await _subsecretariaRepository.GetAllAsync();
-            var conResponsable = subsecretarias.Count(s => !string.IsNullOrEmpty(s.Responsable));
-            var secretarias = subsecretarias.Select(s => s.SecretariaId).Distinct().Count();
+            var conResponsable = subsecretarias.Count(s => s.SubsecretariasResponsables.Any(sr => !sr.IsDeleted));
+            var secretarias = subsecretarias
+                .SelectMany(s => s.SecretariasSubsecretarias.Select(ss => ss.SecretariaId))
+                .Distinct()
+                .Count();
 
             return new Dictionary<string, int>
             {
@@ -142,8 +145,36 @@ public class SubsecretariaService : ISubsecretariaService
         }
     }
 
+    public async Task<IEnumerable<SubsecretariaViewModel>> SearchAsync(string searchTerm)
+    {
+        try
+        {
+            var subsecretarias = await _subsecretariaRepository.SearchAsync(searchTerm);
+            return subsecretarias.Select(MapToViewModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al buscar subsecretarías con término: {SearchTerm}", searchTerm);
+            throw;
+        }
+    }
+
     private SubsecretariaViewModel MapToViewModel(Subsecretaria subsecretaria)
     {
+        // Obtener todas las secretarías asociadas
+        var secretarias = subsecretaria.SecretariasSubsecretarias
+            .Where(ss => !ss.IsDeleted)
+            .Select(ss => ss.Secretaria)
+            .ToList();
+        
+        // Obtener todos los responsables asociados
+        var responsables = subsecretaria.SubsecretariasResponsables
+            .Where(sr => !sr.IsDeleted)
+            .Select(sr => sr.Responsable)
+            .ToList();
+        
+        var primeraSecretaria = secretarias.FirstOrDefault();
+
         return new SubsecretariaViewModel
         {
             Id = subsecretaria.Id,
@@ -151,7 +182,7 @@ public class SubsecretariaService : ISubsecretariaService
             Codigo = subsecretaria.Codigo,
             Nombre = subsecretaria.Nombre,
             Descripcion = subsecretaria.Descripcion,
-            SecretariaId = subsecretaria.SecretariaId,
+            SecretariaId = primeraSecretaria?.Id,
             Responsable = subsecretaria.Responsable,
             CorreoInstitucional = subsecretaria.CorreoInstitucional,
             Telefono = subsecretaria.Telefono,
@@ -159,8 +190,12 @@ public class SubsecretariaService : ISubsecretariaService
             Activo = subsecretaria.Activo,
             NitAlcaldia = subsecretaria.Alcaldia?.Nit,
             MunicipioAlcaldia = subsecretaria.Alcaldia?.Municipio?.Nombre,
-            CodigoSecretaria = subsecretaria.Secretaria?.Codigo,
-            NombreSecretaria = subsecretaria.Secretaria?.Nombre
+            CodigoSecretaria = primeraSecretaria?.Codigo,
+            NombreSecretaria = primeraSecretaria?.Nombre,
+            SecretariasIds = secretarias.Select(s => s.Id).ToList(),
+            SecretariasNombres = secretarias.Select(s => s.Nombre).ToList(),
+            ResponsablesIds = responsables.Select(r => r.Id).ToList(),
+            ResponsablesNombres = responsables.Select(r => r.NombreCompleto).ToList()
         };
     }
 
@@ -173,7 +208,6 @@ public class SubsecretariaService : ISubsecretariaService
             Codigo = viewModel.Codigo,
             Nombre = viewModel.Nombre,
             Descripcion = viewModel.Descripcion,
-            SecretariaId = viewModel.SecretariaId,
             Responsable = viewModel.Responsable,
             CorreoInstitucional = viewModel.CorreoInstitucional,
             Telefono = viewModel.Telefono,

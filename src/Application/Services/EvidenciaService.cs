@@ -93,7 +93,7 @@ public class EvidenciaService : IEvidenciaService
 
     public async Task DeleteEvidenciaAsync(int id)
     {
-        await _evidenciaRepository.DeleteAsync(id);
+        await _evidenciaRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Evidencia desactivada: ID {id}");
     }
 

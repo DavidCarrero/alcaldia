@@ -77,12 +77,12 @@ public class AlcaldeService : IAlcaldeService
         }
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
         try
         {
-            await _alcaldeRepository.DeleteAsync(id);
-            _logger.LogInformation("Alcalde eliminado exitosamente con ID {Id}", id);
+            await _alcaldeRepository.DeleteAsync(id, deletedBy);
+            _logger.LogInformation("Alcalde eliminado exitosamente con ID {Id} por usuario {DeletedBy}", id, deletedBy);
         }
         catch (Exception ex)
         {
@@ -142,8 +142,12 @@ public class AlcaldeService : IAlcaldeService
             NombreCompleto = viewModel.NombreCompleto,
             TipoDocumento = viewModel.TipoDocumento,
             NumeroDocumento = viewModel.NumeroDocumento,
-            PeriodoInicio = viewModel.PeriodoInicio,
-            PeriodoFin = viewModel.PeriodoFin,
+            PeriodoInicio = viewModel.PeriodoInicio.HasValue 
+                ? DateTime.SpecifyKind(viewModel.PeriodoInicio.Value, DateTimeKind.Utc) 
+                : null,
+            PeriodoFin = viewModel.PeriodoFin.HasValue 
+                ? DateTime.SpecifyKind(viewModel.PeriodoFin.Value, DateTimeKind.Utc) 
+                : null,
             Slogan = viewModel.Slogan,
             PartidoPolitico = viewModel.PartidoPolitico,
             CorreoElectronico = viewModel.CorreoElectronico,

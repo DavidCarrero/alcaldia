@@ -50,13 +50,19 @@ public class PlanDepartamentalRepository : IPlanDepartamentalRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var planDepartamental = await GetByIdAsync(id);
+        var planDepartamental = await _context.PlanesDepartamentales.FirstOrDefaultAsync(p => p.Id == id);
+            
         if (planDepartamental != null)
         {
+            // Soft delete
+            planDepartamental.IsDeleted = true;
+            planDepartamental.DeletedAt = DateTime.UtcNow;
+            planDepartamental.DeletedBy = deletedBy;
             planDepartamental.Activo = false;
-            await UpdateAsync(planDepartamental);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

@@ -54,13 +54,19 @@ public class ProgramaRepository : IProgramaRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var programa = await GetByIdAsync(id);
+        var programa = await _context.Programas.FirstOrDefaultAsync(p => p.Id == id);
+            
         if (programa != null)
         {
+            // Soft delete
+            programa.IsDeleted = true;
+            programa.DeletedAt = DateTime.UtcNow;
+            programa.DeletedBy = deletedBy;
             programa.Activo = false;
-            await UpdateAsync(programa);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

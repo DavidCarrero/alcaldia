@@ -8,7 +8,7 @@ public interface IDepartamentoRepository
     Task<Departamento?> GetByIdAsync(int id);
     Task<Departamento> CreateAsync(Departamento departamento);
     Task UpdateAsync(Departamento departamento);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Departamento>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
 }

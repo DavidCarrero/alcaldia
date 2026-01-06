@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -26,10 +27,59 @@ public class MunicipiosController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var municipios = await _municipioService.GetAllMunicipiosAsync(incluirInactivos: true);
-        return View(municipios);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Municipios
+            .Include(m => m.Departamentos)
+            .Where(m => !m.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(m => 
+                m.Codigo.ToLower().Contains(searchLower) || 
+                m.Nombre.ToLower().Contains(searchLower));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(m => m.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(m => new MunicipioViewModel
+            {
+                Id = m.Id,
+                Codigo = m.Codigo,
+                Nombre = m.Nombre,
+                Activo = m.Activo,
+                NombreDepartamento = m.Departamentos.Any() 
+                    ? m.Departamentos.First().Nombre : "",
+                DepartamentoIds = m.Departamentos.Select(d => d.Id).ToList()
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalMunicipios = await _context.Municipios.CountAsync(m => !m.IsDeleted);
+        ViewBag.MunicipiosActivos = await _context.Municipios.CountAsync(m => !m.IsDeleted && m.Activo);
+
+        return View(items);
     }
 
     [HttpGet]
@@ -178,5 +228,25 @@ public class MunicipiosController : BaseController
             nombre = m.Nombre,
             departamento = m.NombreDepartamento
         }));
+    }
+
+    // GET: Municipios/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Municipios
+                .Where(m => !m.IsDeleted)
+                .Select(m => m.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
+        }
     }
 }

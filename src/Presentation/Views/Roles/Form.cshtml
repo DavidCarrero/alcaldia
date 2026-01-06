@@ -31,6 +31,18 @@
                         }
                         
                         <div class="row g-3 mb-4">
+                            <!-- Código -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-hashtag me-2"></i>
+                                    Código
+                                </label>
+                                @Html.TextBoxFor(model => model.Id, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Código"
+                                })
+                            </div>
+
                             <!-- Nombre del Rol -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
@@ -236,4 +248,26 @@
             height: 1.5em;
         }
     </style>
+    
+    <script>
+        $(document).ready(function() {
+            var isEdit = @(isEdit ? "true" : "false");
+            
+            // Solo autocompletar si es creación
+            if (!isEdit) {
+                $.ajax({
+                    url: '@Url.Action("GetNextId", "Roles")',
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.nextId) {
+                            $('#Id').val(data.nextId);
+                        }
+                    },
+                    error: function() {
+                        console.log('Error al obtener siguiente ID');
+                    }
+                });
+            }
+        });
+    </script>
 }

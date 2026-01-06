@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -29,10 +30,61 @@ public class ProyectosController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var proyectos = await _proyectoService.GetAllProyectosAsync(incluirInactivas: true);
-        return View(proyectos);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.Proyectos
+            .Include(p => p.Responsable)
+            .Include(p => p.Alcaldia)
+            .Where(p => !p.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(p => 
+                p.Codigo.ToLower().Contains(searchLower) || 
+                p.Nombre.ToLower().Contains(searchLower) ||
+                (p.Descripcion != null && p.Descripcion.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(p => p.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new ProyectoViewModel
+            {
+                Id = p.Id,
+                Codigo = p.Codigo,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                ResponsableId = p.ResponsableId,
+                NombreResponsable = p.Responsable != null ? p.Responsable.NombreCompleto : "",
+                AlcaldiaId = p.AlcaldiaId
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalProyectos = totalCount;
+        ViewBag.TotalConResponsable = await _context.Proyectos.Where(p => !p.IsDeleted && p.ResponsableId != null).CountAsync();
+
+        return View(items);
     }
 
     [HttpGet]
@@ -179,6 +231,38 @@ public class ProyectosController : BaseController
         {
             _logger.LogError(ex, "Error al buscar proyectos");
             return Json(new List<object>());
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNextCodigo()
+    {
+        try
+        {
+            var maxId = await _context.Proyectos
+                .MaxAsync(p => (int?)p.Id) ?? 0;
+            
+            return Json(new { nextCodigo = (maxId + 1).ToString() });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextCodigo = "1" });
+        }
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Proyectos
+                .MaxAsync(p => (int?)p.Id) ?? 0;
+            
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

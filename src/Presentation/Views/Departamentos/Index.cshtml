@@ -3,8 +3,11 @@
 @{
     ViewData["Title"] = "Departamentos";
     Layout = "_LayoutDashboard";
-    var activos = Model.Count(d => d.Activo);
-    var totalMunicipios = Model.Sum(d => d.CantidadMunicipios);
+    
+    // Obtener estadísticas desde ViewBag
+    var totalDepartamentos = ViewBag.TotalDepartamentos ?? ViewBag.TotalCount ?? Model.Count();
+    var activos = ViewBag.Activos ?? Model.Count(d => d.Activo);
+    var totalMunicipios = ViewBag.TotalMunicipios ?? Model.Sum(d => d.CantidadMunicipios);
 }
 
 <main class="container-fluid">
@@ -42,7 +45,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="stat-label">Total Departamentos</h6>
-                            <h3 class="stat-value">@Model.Count()</h3>
+                            <h3 class="stat-value">@totalDepartamentos</h3>
                             <small class="stat-description text-primary">Registrados</small>
                         </div>
                     </div>
@@ -98,6 +101,7 @@
         </div>
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -112,56 +116,80 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>Código</th>
                             <th>Nombre</th>
                             <th>Municipios</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var departamento in Model)
+                        @if (Model.Any())
                         {
-                            <tr x-show="searchTerm === '' || 
-                                       '@departamento.Codigo'.includes(searchTerm.toUpperCase()) || 
-                                       '@departamento.Nombre?.ToLower()'.includes(searchTerm.toLowerCase())">
-                                <td><span class="badge bg-secondary">@departamento.Codigo</span></td>
-                                <td>@departamento.Nombre</td>
-                                <td>
-                                    <span class="badge bg-info">@departamento.CantidadMunicipios</span>
-                                </td>
-                                <td>
-                                    @if (departamento.Activo)
+                            @foreach (var departamento in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@departamento.Codigo</span></td>
+                                    <td>@departamento.Nombre</td>
+                                    <td>
+                                        <span class="badge bg-info">@departamento.CantidadMunicipios</span>
+                                    </td>
+                                    <td>
+                                        @if (departamento.Activo)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@departamento.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn-action btn-delete" 
+                                                    title="Eliminar"
+                                                    onclick="confirmDelete('@Url.Action("Delete", new { id = departamento.Id })', '@departamento.Nombre', '@Url.Action("Index")')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="fas fa-map-marked-alt fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span class="badge bg-success">Activo</span>
+                                        <p class="text-muted mb-3">No se encontraron departamentos que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
+                                        </a>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Inactivo</span>
+                                        <p class="text-muted mb-3">No hay departamentos registrados. Comience creando un nuevo registro.</p>
                                     }
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@departamento.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" 
-                                                class="btn-action btn-delete" 
-                                                title="Eliminar"
-                                                onclick="confirmDelete('@Url.Action("Delete", new { id = departamento.Id })', '@departamento.Nombre', '@Url.Action("Index")')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </div>
 </main>

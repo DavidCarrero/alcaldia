@@ -1,0 +1,210 @@
+@model Proyecto_alcaldia.Application.ViewModels.VigenciaViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    ViewData["Title"] = isEdit ? "Editar Vigencia" : "Nueva Vigencia";
+    Layout = "_LayoutDashboard";
+    var action = isEdit ? "Edit" : "Create";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Configuración", null),
+        ("Vigencias", Url.Action("Index", "Vigencias")),
+        (isEdit ? "Editar Vigencia" : "Nueva Vigencia", null)
+    })
+
+    <section class="row justify-content-center">
+        <div class="col-lg-8">
+            <article class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas @(isEdit ? "fa-edit" : "fa-calendar-alt") me-2"></i>@(isEdit ? "Editar" : "Nueva") Vigencia
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            @Html.ValidationSummary(false, "", new { @class = "mb-0 list-unstyled" })
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="@action" method="post" class="needs-validation">
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.AlcaldiaId)
+
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+
+                        <div class="row g-3">
+                            <!-- Código -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-1"></i>
+                                    @Html.DisplayNameFor(model => model.Codigo)
+                                </label>
+                                @Html.TextBoxFor(model => model.Codigo, new { 
+                                    @class = "form-control text-uppercase", 
+                                    id = "codigoInput",
+                                    maxlength = "20",
+                                    placeholder = "Código único",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-tag me-1"></i>
+                                    @Html.DisplayNameFor(model => model.Nombre)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Nombre, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Ingrese el nombre de la vigencia",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Año -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    @Html.DisplayNameFor(model => model.Año)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Año, new { 
+                                    @class = "form-control", 
+                                    type = "number",
+                                    min = "1900",
+                                    max = "2100",
+                                    placeholder = DateTime.Now.Year.ToString(),
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Año, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Fecha Inicio -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-day me-1"></i>
+                                    @Html.DisplayNameFor(model => model.FechaInicio)
+                                </label>
+                                @Html.TextBoxFor(model => model.FechaInicio, "{0:yyyy-MM-dd}", new { 
+                                    @class = "form-control", 
+                                    type = "date"
+                                })
+                                @Html.ValidationMessageFor(model => model.FechaInicio, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Fecha Fin -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-check me-1"></i>
+                                    @Html.DisplayNameFor(model => model.FechaFin)
+                                </label>
+                                @Html.TextBoxFor(model => model.FechaFin, "{0:yyyy-MM-dd}", new { 
+                                    @class = "form-control", 
+                                    type = "date"
+                                })
+                                @Html.ValidationMessageFor(model => model.FechaFin, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-1"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                @Html.TextAreaFor(model => model.Descripcion, new { 
+                                    @class = "form-control", 
+                                    rows = 3,
+                                    placeholder = "Descripción de la vigencia"
+                                })
+                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Estado Activo -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input", @checked = Model?.Activo ?? true })
+                                    <label class="form-check-label fw-bold">
+                                        @Html.DisplayNameFor(model => model.Activo)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> @(isEdit ? "Guardar Cambios" : "Guardar")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(document).ready(function() {
+            var isEdit = @(isEdit ? "true" : "false");
+            var codigoInput = $('#codigoInput');
+            
+            // Solo autocompletar si es creación y el campo está vacío o es 0
+            if (!isEdit && (!codigoInput.val() || codigoInput.val() === '0' || parseInt(codigoInput.val()) === 0)) {
+                $.ajax({
+                    url: '@Url.Action("GetNextCodigo", "Vigencias")',
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.nextCodigo) {
+                            codigoInput.val(data.nextCodigo);
+                        }
+                    },
+                    error: function() {
+                        console.log('Error al obtener siguiente ID');
+                    }
+                });
+            }
+
+            // Sincronizar año con fecha inicio
+            $('#FechaInicio').on('change', function() {
+                const fecha = new Date($(this).val());
+                if (!isNaN(fecha.getTime())) {
+                    $('#Año').val(fecha.getFullYear());
+                }
+            });
+
+            // Validar que fecha fin sea posterior a fecha inicio
+            $('#FechaFin').on('change', function() {
+                const fechaInicio = new Date($('#FechaInicio').val());
+                const fechaFin = new Date($(this).val());
+                
+                if (!isNaN(fechaInicio.getTime()) && !isNaN(fechaFin.getTime())) {
+                    if (fechaFin < fechaInicio) {
+                        showNotification('warning', 'La fecha de fin debe ser posterior a la fecha de inicio');
+                        $(this).val('');
+                    }
+                }
+            });
+        });
+    </script>
+}

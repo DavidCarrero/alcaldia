@@ -83,7 +83,7 @@ public class LineaEstrategicaService : ILineaEstrategicaService
 
     public async Task DeleteLineaEstrategicaAsync(int id)
     {
-        await _lineaEstrategicaRepository.DeleteAsync(id);
+        await _lineaEstrategicaRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Línea estratégica desactivada: ID {id}");
     }
 

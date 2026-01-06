@@ -41,6 +41,7 @@
                                 </label>
                                 @Html.TextBoxFor(model => model.Codigo, new { 
                                     @class = "form-control text-uppercase", 
+                                    id = "codigoInput",
                                     maxlength = "10",
                                     placeholder = "Código único",
                                     autocomplete = "off"
@@ -109,4 +110,27 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <script>
+        $(document).ready(function() {
+            var isEdit = @(isEdit ? "true" : "false");
+            var codigoInput = $('#codigoInput');
+            
+            // Solo autocompletar si es creación y el campo está vacío o es 0
+            if (!isEdit && (!codigoInput.val() || codigoInput.val() === '0' || parseInt(codigoInput.val()) === 0)) {
+                $.ajax({
+                    url: '@Url.Action("GetNextId", "Municipios")',
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.nextId) {
+                            codigoInput.val(data.nextId);
+                        }
+                    },
+                    error: function() {
+                        console.log('Error al obtener siguiente ID');
+                    }
+                });
+            }
+        });
+    </script>
 }

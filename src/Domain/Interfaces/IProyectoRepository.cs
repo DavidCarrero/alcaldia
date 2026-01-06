@@ -8,7 +8,7 @@ public interface IProyectoRepository
     Task<Proyecto?> GetByIdAsync(int id);
     Task<Proyecto> CreateAsync(Proyecto proyecto);
     Task UpdateAsync(Proyecto proyecto);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Proyecto>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<int> CountActiveAsync();

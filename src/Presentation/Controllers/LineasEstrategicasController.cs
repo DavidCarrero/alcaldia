@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -29,10 +30,63 @@ public class LineasEstrategicasController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var lineasEstrategicas = await _lineaEstrategicaService.GetAllLineasEstrategicasAsync(incluirInactivas: true);
-        return View(lineasEstrategicas);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.LineasEstrategicas
+            .Include(l => l.Alcaldia)
+            .Include(l => l.Sectores)
+            .Where(l => !l.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(l => 
+                l.Codigo.ToLower().Contains(searchLower) || 
+                l.Nombre.ToLower().Contains(searchLower) ||
+                (l.Sigla != null && l.Sigla.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(l => l.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(l => new LineaEstrategicaViewModel
+            {
+                Id = l.Id,
+                Codigo = l.Codigo,
+                Nombre = l.Nombre,
+                Sigla = l.Sigla,
+                Descripcion = l.Descripcion,
+                Activo = l.Activo,
+                AlcaldiaId = l.AlcaldiaId,
+                NitAlcaldia = l.Alcaldia != null ? l.Alcaldia.Nit : "",
+                CantidadSectores = l.Sectores.Count(s => !s.IsDeleted)
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalLineas = await _context.LineasEstrategicas.CountAsync(l => !l.IsDeleted);
+        ViewBag.LineasActivas = await _context.LineasEstrategicas.CountAsync(l => !l.IsDeleted && l.Activo);
+
+        return View(items);
     }
 
     [HttpGet]
@@ -179,6 +233,26 @@ public class LineasEstrategicasController : BaseController
         {
             _logger.LogError(ex, "Error al buscar líneas estratégicas");
             return Json(new List<object>());
+        }
+    }
+
+    // GET: LineasEstrategicas/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.LineasEstrategicas
+                .Where(l => !l.IsDeleted)
+                .Select(l => l.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -29,10 +30,62 @@ public class PlanesDepartamentalesController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: true);
-        return View(planesDepartamentales);
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
+
+        // Construir query base
+        var query = _context.PlanesDepartamentales
+            .Include(p => p.Sector)
+            .Include(p => p.Alcaldia)
+            .Where(p => !p.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(p => 
+                p.Codigo.ToLower().Contains(searchLower) || 
+                p.Nombre.ToLower().Contains(searchLower) ||
+                (p.Descripcion != null && p.Descripcion.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(p => p.Codigo);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new PlanDepartamentalViewModel
+            {
+                Id = p.Id,
+                Codigo = p.Codigo,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                SectorId = p.SectorId,
+                NombreSector = p.Sector != null ? p.Sector.Nombre : "",
+                AlcaldiaId = p.AlcaldiaId,
+                NitAlcaldia = p.Alcaldia != null ? p.Alcaldia.Nit : ""
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        ViewBag.TotalPlanesDepartamentales = totalCount;
+        ViewBag.TotalConSector = await _context.PlanesDepartamentales.Where(p => !p.IsDeleted && p.SectorId != null).CountAsync();
+
+        return View(items);
     }
 
     [HttpGet]
@@ -179,6 +232,26 @@ public class PlanesDepartamentalesController : BaseController
         {
             _logger.LogError(ex, "Error al buscar planes departamentales");
             return Json(new List<object>());
+        }
+    }
+
+    // GET: PlanesDepartamentales/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.PlanesDepartamentales
+                .Where(p => !p.IsDeleted)
+                .Select(p => p.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

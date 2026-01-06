@@ -54,13 +54,19 @@ public class PlanMunicipalRepository : IPlanMunicipalRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var planMunicipal = await GetByIdAsync(id);
+        var planMunicipal = await _context.PlanesMunicipales.FirstOrDefaultAsync(p => p.Id == id);
+            
         if (planMunicipal != null)
         {
+            // Soft delete
+            planMunicipal.IsDeleted = true;
+            planMunicipal.DeletedAt = DateTime.UtcNow;
+            planMunicipal.DeletedBy = deletedBy;
             planMunicipal.Activo = false;
-            await UpdateAsync(planMunicipal);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

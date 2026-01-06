@@ -3,6 +3,10 @@
 @{
     ViewData["Title"] = "Gestión de Responsables";
     Layout = "_LayoutDashboard";
+    
+    var totalResponsables = ViewBag.TotalActivos ?? Model.Count();
+    var conSecretaria = ViewBag.ConSecretaria ?? Model.Count(r => r.SecretariaId.HasValue);
+    var tiposResponsable = ViewBag.TiposResponsable ?? 0;
 }
 
 <main class="container-fluid">
@@ -28,7 +32,7 @@
     </header>
 
     <!-- Tarjetas de Estadísticas -->
-    <div class="row g-4 mb-4">
+    <section class="row g-4 mb-4" aria-label="Estadísticas de responsables">
         <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -40,13 +44,14 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Responsables</h6>
-                            <h3 class="mb-0 fw-bold">@ViewBag.TotalActivos</h3>
+                            <h3 class="mb-0 fw-bold">@totalResponsables</h3>
                             <small class="text-primary">Activos</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -58,13 +63,14 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Con Secretaría</h6>
-                            <h3 class="mb-0 fw-bold">@ViewBag.ConSecretaria</h3>
+                            <h3 class="mb-0 fw-bold">@conSecretaria</h3>
                             <small class="text-success">Asignados</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -76,135 +82,195 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Tipos de Responsable</h6>
-                            <h3 class="mb-0 fw-bold">@ViewBag.TiposResponsable</h3>
+                            <h3 class="mb-0 fw-bold">@tiposResponsable</h3>
                             <small class="text-info">Categorías</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Tabla de Responsables -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Lista de Responsables</h5>
-                </div>
-            </div>
-        </div>
+    <!-- Barra de Búsqueda -->
+    <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de responsables">
         <div class="card-body">
-            <form asp-action="Index" method="get" id="searchForm" class="mb-3">
+            <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
                     </span>
                     <input type="text" 
-                           name="searchTerm" 
+                           name="searchTerm"
                            class="form-control border-start-0" 
-                           placeholder="Buscar por nombre..."
+                           placeholder="Buscar por nombre o documento..."
                            value="@ViewData["SearchTerm"]"
                            onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
                 </div>
             </form>
+        </div>
+    </section>
+
+    <!-- Tabla de Responsables -->
+    <section class="card border-0 shadow-sm" aria-label="Listado de responsables">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de Responsables</h5>
+        </div>
+        <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
                             <th>Responsable</th>
                             <th>Documento</th>
                             <th>Cargo</th>
+                            <th>Contacto</th>
                             <th>Secretaría</th>
-                            <th>Alcaldía</th>
                             <th>Estado</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var responsable in Model)
+                        @if (Model.Any())
                         {
-                            <tr x-show="searchTerm === '' || 
-                                       '@responsable.NombreCompleto'.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                       '@responsable.NumeroIdentificacion'.toLowerCase().includes(searchTerm.toLowerCase())" 
-                                x-cloak>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="user-avatar user-avatar-primary me-2">
-                                            @responsable.NombreCompleto.Substring(0, 1).ToUpper()
+                            @foreach (var responsable in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center text-white me-3" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">@responsable.NombreCompleto</div>
+                                                @if (!string.IsNullOrEmpty(responsable.TipoResponsable))
+                                                {
+                                                    <small class="text-muted">@responsable.TipoResponsable</small>
+                                                }
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div class="fw-bold">@responsable.NombreCompleto</div>
-                                            @if (!string.IsNullOrEmpty(responsable.Email))
-                                            {
-                                                <small class="text-muted">@responsable.Email</small>
-                                            }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark">@responsable.TipoDocumento</span>
+                                        <span class="ms-1">@responsable.NumeroIdentificacion</span>
+                                    </td>
+                                    <td>@(responsable.Cargo ?? "-")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(responsable.Email))
+                                        {
+                                            <div><i class="fas fa-envelope text-muted me-1"></i>@responsable.Email</div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(responsable.Telefono))
+                                        {
+                                            <div><i class="fas fa-phone text-muted me-1"></i>@responsable.Telefono</div>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(responsable.NombreSecretaria))
+                                        {
+                                            <span class="badge bg-info">@responsable.NombreSecretaria</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin asignar</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (responsable.Activo)
+                                        {
+                                            <span class="badge bg-success">ACTIVO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">INACTIVO</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@responsable.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete" 
+                                                    onclick="confirmDelete('@Url.Action("Delete", "Responsables", new { id = responsable.Id })', '@responsable.NombreCompleto', '@Url.Action("Index", "Responsables")')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div>@responsable.TipoDocumento</div>
-                                    <small class="text-muted">@responsable.NumeroIdentificacion</small>
-                                </td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(responsable.Cargo))
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="fas fa-user-tie fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span class="badge badge-gradient bg-info">@responsable.Cargo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">-</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(responsable.NombreSecretaria))
-                                    {
-                                        @responsable.NombreSecretaria
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Sin asignar</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div>@responsable.MunicipioAlcaldia</div>
-                                    <small class="text-muted">@responsable.NitAlcaldia</small>
-                                </td>
-                                <td>
-                                    @if (responsable.Activo)
-                                    {
-                                        <span class="badge bg-success">Activo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Inactivo</span>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@responsable.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <p class="text-muted mb-3">No se encontraron responsables que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
                                         </a>
-                                        <button type="button" class="btn-action btn-delete" 
-                                                onclick="confirmDelete('@Url.Action("Delete", "Responsables", new { id = responsable.Id })', '@responsable.NombreCompleto', '@Url.Action("Index", "Responsables")')"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay responsables registrados. Comience creando un nuevo registro.</p>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </section>
 </main>
 
 @section Scripts {
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        [x-cloak] { display: none !important; }
+        /* Efectos de hover en las cards */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Efecto en las filas de la tabla */
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--theme-primary-light, rgba(13, 110, 253, 0.05));
+            transform: scale(1.01);
+        }
+
+        /* Botones de acción */
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.15);
+        }
+
+        /* Animación del icono de usuario */
+        .table tbody tr td .rounded-circle {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover td .rounded-circle {
+            transform: rotate(5deg) scale(1.1);
+        }
     </style>
 }
+
+

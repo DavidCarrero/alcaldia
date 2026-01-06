@@ -7,4 +7,5 @@ public interface ISubsecretariaRepository : IBaseRepository<Subsecretaria>
     Task<IEnumerable<Subsecretaria>> GetBySecretariaIdAsync(int secretariaId);
     Task<IEnumerable<Subsecretaria>> GetByAlcaldiaIdAsync(int alcaldiaId);
     Task<int> GetTotalActivasAsync();
+    Task<IEnumerable<Subsecretaria>> SearchAsync(string searchTerm);
 }

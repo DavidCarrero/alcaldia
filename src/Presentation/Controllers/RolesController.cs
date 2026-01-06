@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -23,17 +24,59 @@ public class RolesController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var roles = await _rolService.GetAllRolesAsync(incluirInactivos: true);
-        var estadisticas = await _rolService.GetEstadisticasAsync();
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
 
+        // Construir query base
+        var query = _context.Roles
+            .Include(r => r.UsuariosRoles)
+            .Where(r => !r.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(r => 
+                r.Nombre.ToLower().Contains(searchLower) || 
+                (r.Descripcion != null && r.Descripcion.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderBy(r => r.Nombre);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(r => new RolViewModel
+            {
+                Id = r.Id,
+                Nombre = r.Nombre,
+                Descripcion = r.Descripcion,
+                Activo = r.Activo
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas
+        var estadisticas = await _rolService.GetEstadisticasAsync();
         ViewBag.TotalRoles = estadisticas.totalRoles;
         ViewBag.PermisosConfigurados = estadisticas.permisosConfigurados;
         ViewBag.UsuariosAsignados = estadisticas.usuariosAsignados;
         ViewBag.RolesPersonalizados = estadisticas.rolesPersonalizados;
 
-        return View(roles);
+        return View(items);
     }
 
     [HttpGet]
@@ -140,5 +183,12 @@ public class RolesController : BaseController
     {
         var exists = await _rolService.NameExistsAsync(nombre, id);
         return Json(!exists);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        var nextId = await GetNextCodigoAsync("Roles");
+        return Json(new { nextId = nextId });
     }
 }

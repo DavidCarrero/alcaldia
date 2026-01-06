@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
+using Proyecto_alcaldia.Presentation.Models;
 
 namespace Proyecto_alcaldia.Presentation.Controllers;
 
@@ -29,10 +31,74 @@ public class AlcaldiasController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: true);
-        return View(alcaldias);
+        // Validar parámetros de paginación
+        page = Math.Max(1, page);
+        pageSize = new[] { 5, 10, 20, 50, 100 }.Contains(pageSize) ? pageSize : 5;
+
+        // Construir query base con paginación del lado del servidor
+        var query = _context.Alcaldias
+            .Include(a => a.Municipio)
+            .ThenInclude(m => m!.Departamentos)
+            .Where(a => !a.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda si existe
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(a => 
+                a.Nit.ToLower().Contains(searchLower) || 
+                (a.Municipio != null && a.Municipio.Nombre.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar por ID
+        query = query.OrderByDescending(a => a.Id);
+
+        // Obtener total de registros para estadísticas (sin paginación)
+        var totalAlcaldias = await _context.Alcaldias.CountAsync(a => !a.IsDeleted);
+        var alcaldiasActivas = await _context.Alcaldias.CountAsync(a => !a.IsDeleted && a.Activo);
+
+        // Aplicar paginación
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => new AlcaldiaViewModel
+            {
+                Id = a.Id,
+                Nit = a.Nit,
+                Logo = a.Logo,
+                Telefono = a.Telefono,
+                CorreoInstitucional = a.CorreoInstitucional,
+                MunicipioId = a.MunicipioId ?? 0,
+                NombreMunicipio = a.Municipio != null ? a.Municipio.Nombre : "",
+                NombreDepartamento = a.Municipio != null && a.Municipio.Departamentos.Any() 
+                    ? a.Municipio.Departamentos.First().Nombre : "",
+                Activo = a.Activo
+            })
+            .ToListAsync();
+
+        // Configurar ViewBag para paginación
+        ViewBag.PageIndex = page;
+        ViewBag.TotalPages = totalPages;
+        ViewBag.PageSize = pageSize;
+        ViewBag.TotalCount = totalCount;
+        ViewBag.FirstItemIndex = totalCount > 0 ? (page - 1) * pageSize + 1 : 0;
+        ViewBag.LastItemIndex = Math.Min(page * pageSize, totalCount);
+        ViewBag.HasPreviousPage = page > 1;
+        ViewBag.HasNextPage = page < totalPages;
+
+        // Estadísticas para cards
+        ViewBag.TotalAlcaldias = totalAlcaldias;
+        ViewBag.AlcaldiasActivas = alcaldiasActivas;
+
+        return View(items);
     }
 
     [HttpGet]
@@ -248,6 +314,26 @@ public class AlcaldiasController : BaseController
         {
             _logger.LogError(ex, "Error al buscar alcaldías");
             return Json(new List<object>());
+        }
+    }
+
+    // GET: Alcaldias/GetNextId
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        try
+        {
+            var maxId = await _context.Alcaldias
+                .Where(a => !a.IsDeleted)
+                .Select(a => a.Id)
+                .DefaultIfEmpty(0)
+                .MaxAsync();
+
+            return Json(new { nextId = maxId + 1 });
+        }
+        catch (Exception)
+        {
+            return Json(new { nextId = 1 });
         }
     }
 }

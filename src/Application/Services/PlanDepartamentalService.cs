@@ -45,8 +45,8 @@ public class PlanDepartamentalService : IPlanDepartamentalService
             Departamento = model.Departamento,
             Eje = model.Eje,
             SectorId = model.SectorId,
-            FechaInicio = model.FechaInicio,
-            FechaFin = model.FechaFin,
+            FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null,
+            FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null,
             Activo = model.Activo,
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
@@ -78,8 +78,8 @@ public class PlanDepartamentalService : IPlanDepartamentalService
         planDepartamental.Departamento = model.Departamento;
         planDepartamental.Eje = model.Eje;
         planDepartamental.SectorId = model.SectorId;
-        planDepartamental.FechaInicio = model.FechaInicio;
-        planDepartamental.FechaFin = model.FechaFin;
+        planDepartamental.FechaInicio = model.FechaInicio.HasValue ? DateTime.SpecifyKind(model.FechaInicio.Value, DateTimeKind.Utc) : null;
+        planDepartamental.FechaFin = model.FechaFin.HasValue ? DateTime.SpecifyKind(model.FechaFin.Value, DateTimeKind.Utc) : null;
         planDepartamental.Activo = model.Activo;
         planDepartamental.FechaActualizacion = DateTime.UtcNow;
 
@@ -89,7 +89,7 @@ public class PlanDepartamentalService : IPlanDepartamentalService
 
     public async Task DeletePlanDepartamentalAsync(int id)
     {
-        await _planDepartamentalRepository.DeleteAsync(id);
+        await _planDepartamentalRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Plan departamental desactivado: ID {id}");
     }
 

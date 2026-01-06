@@ -50,13 +50,19 @@ public class LineaEstrategicaRepository : ILineaEstrategicaRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var lineaEstrategica = await GetByIdAsync(id);
+        var lineaEstrategica = await _context.LineasEstrategicas.FirstOrDefaultAsync(l => l.Id == id);
+            
         if (lineaEstrategica != null)
         {
+            // Soft delete
+            lineaEstrategica.IsDeleted = true;
+            lineaEstrategica.DeletedAt = DateTime.UtcNow;
+            lineaEstrategica.DeletedBy = deletedBy;
             lineaEstrategica.Activo = false;
-            await UpdateAsync(lineaEstrategica);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

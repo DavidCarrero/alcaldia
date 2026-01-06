@@ -77,30 +77,16 @@ public class ResponsableService : IResponsableService
         }
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
         try
         {
-            await _responsableRepository.DeleteAsync(id);
-            _logger.LogInformation("Responsable eliminado exitosamente con ID {Id}", id);
+            await _responsableRepository.DeleteAsync(id, deletedBy);
+            _logger.LogInformation("Responsable eliminado exitosamente con ID {Id} por usuario {DeletedBy}", id, deletedBy);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al eliminar el responsable con ID {Id}", id);
-            throw;
-        }
-    }
-
-    public async Task<IEnumerable<ResponsableViewModel>> GetBySecretariaIdAsync(int secretariaId)
-    {
-        try
-        {
-            var responsables = await _responsableRepository.GetBySecretariaIdAsync(secretariaId);
-            return responsables.Select(MapToViewModel);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al obtener responsables de la secretaría {SecretariaId}", secretariaId);
             throw;
         }
     }
@@ -125,7 +111,7 @@ public class ResponsableService : IResponsableService
         {
             var totalActivos = await _responsableRepository.GetTotalActivosAsync();
             var responsables = await _responsableRepository.GetAllAsync();
-            var conSecretaria = responsables.Count(r => r.SecretariaId.HasValue);
+            var conSubsecretaria = responsables.Count(r => r.SubsecretariasResponsables.Any(sr => !sr.IsDeleted));
             var tiposResponsable = responsables
                 .Where(r => !string.IsNullOrEmpty(r.TipoResponsable))
                 .Select(r => r.TipoResponsable)
@@ -135,7 +121,7 @@ public class ResponsableService : IResponsableService
             return new Dictionary<string, int>
             {
                 { "TotalActivos", totalActivos },
-                { "ConSecretaria", conSecretaria },
+                { "ConSecretaria", conSubsecretaria },
                 { "TiposResponsable", tiposResponsable }
             };
         }
@@ -159,12 +145,9 @@ public class ResponsableService : IResponsableService
             Email = responsable.Email,
             Cargo = responsable.Cargo,
             TipoResponsable = responsable.TipoResponsable,
-            SecretariaId = responsable.SecretariaId,
             Activo = responsable.Activo,
             NitAlcaldia = responsable.Alcaldia?.Nit,
-            MunicipioAlcaldia = responsable.Alcaldia?.Municipio?.Nombre,
-            CodigoSecretaria = responsable.Secretaria?.Codigo,
-            NombreSecretaria = responsable.Secretaria?.Nombre
+            MunicipioAlcaldia = responsable.Alcaldia?.Municipio?.Nombre
         };
     }
 
@@ -181,8 +164,21 @@ public class ResponsableService : IResponsableService
             Email = viewModel.Email,
             Cargo = viewModel.Cargo,
             TipoResponsable = viewModel.TipoResponsable,
-            SecretariaId = viewModel.SecretariaId,
             Activo = viewModel.Activo
         };
+    }
+
+    public async Task<IEnumerable<ResponsableViewModel>> SearchAsync(string searchTerm)
+    {
+        try
+        {
+            var responsables = await _responsableRepository.SearchAsync(searchTerm);
+            return responsables.Select(MapToViewModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al buscar responsables con el término: {SearchTerm}", searchTerm);
+            throw;
+        }
     }
 }

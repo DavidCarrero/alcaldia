@@ -8,7 +8,7 @@ public interface IPlanNacionalRepository
     Task<PlanNacional?> GetByIdAsync(int id);
     Task<PlanNacional> CreateAsync(PlanNacional planNacional);
     Task UpdateAsync(PlanNacional planNacional);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<PlanNacional>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<int> CountActiveAsync();

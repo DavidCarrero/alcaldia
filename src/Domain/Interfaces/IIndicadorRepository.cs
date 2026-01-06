@@ -8,7 +8,7 @@ public interface IIndicadorRepository
     Task<Indicador?> GetByIdAsync(int id);
     Task<Indicador> CreateAsync(Indicador indicador);
     Task UpdateAsync(Indicador indicador);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<Indicador>> SearchAsync(string searchTerm);
     Task<bool> CodigoExistsAsync(string codigo, int? excludeId = null);
     Task<int> CountActiveAsync();

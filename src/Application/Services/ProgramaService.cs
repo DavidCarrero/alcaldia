@@ -89,7 +89,7 @@ public class ProgramaService : IProgramaService
 
     public async Task DeleteProgramaAsync(int id)
     {
-        await _programaRepository.DeleteAsync(id);
+        await _programaRepository.DeleteAsync(id, "Sistema");
         _logger.LogInformation($"Programa desactivado: ID {id}");
     }
 

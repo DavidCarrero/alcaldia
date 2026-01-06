@@ -52,13 +52,19 @@ public class IndicadorRepository : IIndicadorRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
-        var indicador = await GetByIdAsync(id);
+        var indicador = await _context.Indicadores.FirstOrDefaultAsync(i => i.Id == id);
+            
         if (indicador != null)
         {
+            // Soft delete
+            indicador.IsDeleted = true;
+            indicador.DeletedAt = DateTime.UtcNow;
+            indicador.DeletedBy = deletedBy;
             indicador.Activo = false;
-            await UpdateAsync(indicador);
+            
+            await _context.SaveChangesAsync();
         }
     }
 

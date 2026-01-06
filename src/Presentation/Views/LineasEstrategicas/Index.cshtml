@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Líneas Estratégicas";
     Layout = "_LayoutDashboard";
+    
+    // Obtener estadísticas desde ViewBag
+    var totalLineas = ViewBag.TotalLineas ?? ViewBag.TotalCount ?? Model.Count();
+    var sectoresVinculados = ViewBag.SectoresVinculados ?? Model.Sum(l => (int?)l.CantidadSectores ?? 0);
+    var promedioSectores = ViewBag.PromedioSectores ?? (Model.Any() ? Math.Round(Model.Average(l => (int?)l.CantidadSectores ?? 0), 1) : 0);
 }
 
 <main class="container-fluid">
@@ -40,7 +45,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Líneas Estratégicas</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <h3 class="mb-0 fw-bold">@totalLineas</h3>
                             <small class="text-primary">Registradas</small>
                         </div>
                     </div>
@@ -59,7 +64,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Sectores Vinculados</h6>
-                            <h3 class="mb-0 fw-bold">@Model.Sum(l => (int?)l.CantidadSectores ?? 0)</h3>
+                            <h3 class="mb-0 fw-bold">@sectoresVinculados</h3>
                             <small class="text-success">Total sectores</small>
                         </div>
                     </div>
@@ -78,7 +83,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Promedio de Sectores</h6>
-                            <h3 class="mb-0 fw-bold">@(Model.Any() ? Math.Round(Model.Average(l => (int?)l.CantidadSectores ?? 0), 1) : 0)</h3>
+                            <h3 class="mb-0 fw-bold">@promedioSectores</h3>
                             <small class="text-info">Por línea</small>
                         </div>
                     </div>
@@ -91,6 +96,7 @@
     <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de líneas estratégicas">
         <div class="card-body">
             <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0">
                         <i class="fas fa-search text-muted"></i>
@@ -126,40 +132,66 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var linea in Model)
+                        @if (Model.Any())
+                        {
+                            @foreach (var linea in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@linea.Codigo</span></td>
+                                    <td><span class="fw-bold">@linea.Nombre</span></td>
+                                    <td>@linea.Sigla</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(linea.Descripcion))
+                                        {
+                                            <span>@(linea.Descripcion.Length > 50 ? linea.Descripcion.Substring(0, 50) + "..." : linea.Descripcion)</span>
+                                        }
+                                    </td>
+                                    <td>@linea.MunicipioAlcaldia</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@(linea.CantidadSectores)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="action-buttons">
+                                            <a asp-action="Edit" asp-route-id="@linea.Id" 
+                                               class="btn-action btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn-action btn-delete" 
+                                                    onclick="confirmDelete('@Url.Action("Delete", "LineasEstrategicas", new { id = linea.Id })', '@linea.Codigo', '@Url.Action("Index", "LineasEstrategicas")')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td><span class="badge bg-secondary">@linea.Codigo</span></td>
-                                <td><span class="fw-bold">@linea.Nombre</span></td>
-                                <td>@linea.Sigla</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(linea.Descripcion))
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="fas fa-compass fa-4x text-muted mb-3 d-block"></i>
+                                    <h5 class="text-muted">No hay resultados</h5>
+                                    @if (!string.IsNullOrWhiteSpace(ViewData["SearchTerm"]?.ToString()))
                                     {
-                                        <span>@(linea.Descripcion.Length > 50 ? linea.Descripcion.Substring(0, 50) + "..." : linea.Descripcion)</span>
-                                    }
-                                </td>
-                                <td>@linea.MunicipioAlcaldia</td>
-                                <td class="text-center">
-                                    <span class="badge bg-info">@(linea.CantidadSectores)</span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="action-buttons">
-                                        <a asp-action="Edit" asp-route-id="@linea.Id" 
-                                           class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <p class="text-muted mb-3">No se encontraron líneas estratégicas que coincidan con "<strong>@ViewData["SearchTerm"]</strong>"</p>
+                                        <a asp-action="Index" class="btn btn-outline-primary">
+                                            <i class="fas fa-times me-1"></i>Limpiar búsqueda
                                         </a>
-                                        <button type="button" class="btn-action btn-delete" 
-                                                onclick="confirmDelete('@Url.Action("Delete", "LineasEstrategicas", new { id = linea.Id })', '@linea.Codigo', '@Url.Action("Index", "LineasEstrategicas")')"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-3">No hay líneas estratégicas registradas. Comience creando un nuevo registro.</p>
+                                    }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginación -->
+            @await Html.PartialAsync("_Pagination")
         </div>
     </section>
 </main>

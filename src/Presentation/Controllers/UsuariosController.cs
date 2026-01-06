@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Application.DTOs;
@@ -28,17 +29,61 @@ public class UsuariosController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm = null, int page = 1, int pageSize = 5)
     {
-        var usuarios = await _usuarioService.GetAllUsuariosAsync(incluirInactivos: true);
-        var estadisticas = await _usuarioService.GetEstadisticasAsync();
+        // Validar parámetros de paginación
+        (page, pageSize) = ValidarParametrosPaginacion(page, pageSize);
 
+        // Construir query base
+        var query = _context.Usuarios
+            .Where(u => !u.IsDeleted)
+            .AsQueryable();
+
+        // Aplicar búsqueda
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            query = query.Where(u => 
+                u.NombreCompleto.ToLower().Contains(searchLower) || 
+                u.CorreoElectronico.ToLower().Contains(searchLower) ||
+                (u.NombreUsuario != null && u.NombreUsuario.ToLower().Contains(searchLower)));
+            ViewData["SearchTerm"] = searchTerm;
+        }
+
+        // Ordenar
+        query = query.OrderByDescending(u => u.Id);
+
+        // Contar total
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        page = Math.Min(page, Math.Max(1, totalPages));
+
+        // Aplicar paginación
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => new UsuarioViewModel
+            {
+                Id = u.Id,
+                NombreCompleto = u.NombreCompleto,
+                NombreUsuario = u.NombreUsuario,
+                CorreoElectronico = u.CorreoElectronico,
+                Activo = u.Activo,
+                UltimoAcceso = u.UltimoAcceso
+            })
+            .ToListAsync();
+
+        // Configurar paginación
+        ConfigurarPaginacion(page, pageSize, totalCount);
+
+        // Estadísticas (del total, no de la página)
+        var estadisticas = await _usuarioService.GetEstadisticasAsync();
         ViewBag.UsuariosActivos = estadisticas.activos;
         ViewBag.UsuariosInactivos = estadisticas.inactivos;
         ViewBag.SesionesActivas = estadisticas.sesionesActivas;
         ViewBag.AccesosHoy = estadisticas.accesosHoy;
 
-        return View(usuarios);
+        return View(items);
     }
 
     [HttpGet]
@@ -81,7 +126,8 @@ public class UsuariosController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al crear usuario");
-            ModelState.AddModelError("", ex.Message);
+            var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
+            ModelState.AddModelError("", mensajeError);
             ViewBag.Roles = await _rolService.GetAllRolesAsync();
             return View("Form", model);
         }
@@ -136,7 +182,8 @@ public class UsuariosController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al actualizar usuario");
-            ModelState.AddModelError("", ex.Message);
+            var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
+            ModelState.AddModelError("", mensajeError);
             ViewBag.Roles = await _rolService.GetAllRolesAsync();
             return View("Form", model);
         }
@@ -192,8 +239,15 @@ public class UsuariosController : BaseController
         var roles = string.IsNullOrEmpty(search) 
             ? await _rolService.GetAllRolesAsync(incluirInactivos: false)
             : await _rolService.SearchRolesAsync(search);
-        var result = roles.Select(r => new { id = r.Id, text = r.Nombre });
+        var result = roles.Select(r => new { id = r.Id, nombre = r.Nombre });
         return Json(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNextId()
+    {
+        var nextId = await GetNextCodigoAsync("Usuarios");
+        return Json(new { nextId = nextId });
     }
 
     [HttpGet]
