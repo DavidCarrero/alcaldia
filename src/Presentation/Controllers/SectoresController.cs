@@ -72,6 +72,9 @@ public class SectoresController : BaseController
             // Asignar alcaldía del usuario logueado
             model.AlcaldiaId = ObtenerAlcaldiaId();
             
+            // Normalizar FK opcionales (convertir 0 a null)
+            model.LineaEstrategicaId = NormalizarIdOpcional(model.LineaEstrategicaId);
+            
             await _sectorService.CreateSectorAsync(model);
             TempData["Success"] = "Sector creado exitosamente";
             return RedirectToAction(nameof(Index));

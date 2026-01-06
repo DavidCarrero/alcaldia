@@ -23,9 +23,8 @@ public class SubsecretariaViewModel
     [Display(Name = "Descripción")]
     public string? Descripcion { get; set; }
 
-    [Required(ErrorMessage = "La secretaría es requerida")]
     [Display(Name = "Secretaría")]
-    public int SecretariaId { get; set; }
+    public int? SecretariaId { get; set; }
 
     [Display(Name = "Responsable")]
     [StringLength(200)]

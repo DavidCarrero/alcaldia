@@ -38,10 +38,10 @@ public class Programa : BaseEntity
     public PlanMunicipal? PlanMunicipal { get; set; }
 
     [Column("sector_id")]
-    public int SectorId { get; set; }
+    public int? SectorId { get; set; }
 
     [ForeignKey("SectorId")]
-    public Sector Sector { get; set; } = null!;
+    public Sector? Sector { get; set; }
 
     [Column("ods_id")]
     public int? ODSId { get; set; }

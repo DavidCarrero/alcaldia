@@ -42,9 +42,8 @@ public class ProgramaViewModel
     [Display(Name = "Nombre Plan Municipal")]
     public string? NombrePlanMunicipal { get; set; }
 
-    [Required(ErrorMessage = "El sector es obligatorio")]
     [Display(Name = "Sector")]
-    public int SectorId { get; set; }
+    public int? SectorId { get; set; }
 
     [Display(Name = "Código Sector")]
     public string? CodigoSector { get; set; }

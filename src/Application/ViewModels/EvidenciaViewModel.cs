@@ -29,9 +29,8 @@ public class EvidenciaViewModel
     [Display(Name = "Descripción")]
     public string? Descripcion { get; set; }
 
-    [Required(ErrorMessage = "La actividad es obligatoria")]
     [Display(Name = "Actividad")]
-    public int ActividadId { get; set; }
+    public int? ActividadId { get; set; }
 
     [Display(Name = "Código Actividad")]
     public string? CodigoActividad { get; set; }

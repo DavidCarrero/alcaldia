@@ -29,9 +29,8 @@ public class SectorViewModel
     [Display(Name = "Descripción")]
     public string? Descripcion { get; set; }
 
-    [Required(ErrorMessage = "La línea estratégica es obligatoria")]
     [Display(Name = "Línea Estratégica")]
-    public int LineaEstrategicaId { get; set; }
+    public int? LineaEstrategicaId { get; set; }
 
     [Display(Name = "Código Línea Estratégica")]
     public string? CodigoLineaEstrategica { get; set; }

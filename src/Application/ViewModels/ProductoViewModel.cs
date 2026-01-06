@@ -29,9 +29,8 @@ public class ProductoViewModel
     [Display(Name = "Descripción")]
     public string? Descripcion { get; set; }
 
-    [Required(ErrorMessage = "El programa es obligatorio")]
     [Display(Name = "Programa")]
-    public int ProgramaId { get; set; }
+    public int? ProgramaId { get; set; }
 
     [Display(Name = "Código Programa")]
     public string? CodigoPrograma { get; set; }

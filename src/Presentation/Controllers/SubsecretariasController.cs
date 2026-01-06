@@ -74,6 +74,9 @@ public class SubsecretariasController : BaseController
             // Asignar alcaldía del usuario logueado
             viewModel.AlcaldiaId = ObtenerAlcaldiaId();
             
+            // Normalizar FK opcionales (convertir 0 a null)
+            viewModel.SecretariaId = NormalizarIdOpcional(viewModel.SecretariaId);
+            
             await _subsecretariaService.CreateAsync(viewModel);
             TempData["Success"] = $"La subsecretaría '{viewModel.Nombre}' ha sido creada exitosamente.";
             return RedirectToAction(nameof(Index));

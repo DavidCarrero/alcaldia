@@ -30,9 +30,8 @@ public class ActividadViewModel
     [Display(Name = "Descripción")]
     public string? Descripcion { get; set; }
 
-    [Required(ErrorMessage = "El proyecto es obligatorio")]
     [Display(Name = "Proyecto")]
-    public int ProyectoId { get; set; }
+    public int? ProyectoId { get; set; }
 
     [Display(Name = "Código Proyecto")]
     public string? CodigoProyecto { get; set; }

@@ -29,10 +29,10 @@ public class Sector : BaseEntity
     public string? Descripcion { get; set; }
 
     [Column("linea_estrategica_id")]
-    public int LineaEstrategicaId { get; set; }
+    public int? LineaEstrategicaId { get; set; }
 
     [ForeignKey("LineaEstrategicaId")]
-    public LineaEstrategica LineaEstrategica { get; set; } = null!;
+    public LineaEstrategica? LineaEstrategica { get; set; }
 
     [Column("aplicacion", TypeName = "text")]
     public string? Aplicacion { get; set; }

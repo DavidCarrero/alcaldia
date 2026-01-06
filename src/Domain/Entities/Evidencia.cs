@@ -29,10 +29,10 @@ public class Evidencia : BaseEntity
     public string? Descripcion { get; set; }
 
     [Column("actividad_id")]
-    public int ActividadId { get; set; }
+    public int? ActividadId { get; set; }
 
     [ForeignKey("ActividadId")]
-    public Actividad Actividad { get; set; } = null!;
+    public Actividad? Actividad { get; set; }
 
     [MaxLength(5)]
     [Column("tipo_evidencia")]

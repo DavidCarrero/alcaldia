@@ -29,10 +29,10 @@ public class Producto : BaseEntity
     public string? Descripcion { get; set; }
 
     [Column("programa_id")]
-    public int ProgramaId { get; set; }
+    public int? ProgramaId { get; set; }
 
     [ForeignKey("ProgramaId")]
-    public Programa Programa { get; set; } = null!;
+    public Programa? Programa { get; set; }
 
     [Column("presupuesto_asignado", TypeName = "numeric(18,2)")]
     public decimal? PresupuestoAsignado { get; set; }

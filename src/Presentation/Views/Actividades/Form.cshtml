@@ -45,18 +45,6 @@
                         }
                         
                         <div class="row g-3">
-                            <!-- Proyecto -->
-                            @{
-                                ViewData["fieldName"] = "ProyectoId";
-                                ViewData["label"] = "Proyecto";
-                                ViewData["options"] = ViewBag.Proyectos;
-                                ViewData["selectedValue"] = Model?.ProyectoId.ToString();
-                                ViewData["placeholder"] = "Seleccione un proyecto (opcional)";
-                                ViewData["required"] = "False";
-                                ViewData["icon"] = "fa-project-diagram";
-                            }
-                            @await Html.PartialAsync("_SimpleDropdown")
-
                             <!-- Código -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">
@@ -102,29 +90,20 @@
                                 @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
 
-                            <!-- Responsable -->
-                            @{
-                                ViewData["fieldName"] = "ResponsableId";
-                                ViewData["label"] = "Responsable";
-                                ViewData["options"] = ViewBag.Responsables;
-                                ViewData["selectedValue"] = Model?.ResponsableId?.ToString();
-                                ViewData["placeholder"] = "Seleccione un responsable (opcional)";
-                                ViewData["required"] = "False";
-                                ViewData["icon"] = "fa-user-tie";
-                            }
-                            @await Html.PartialAsync("_SimpleDropdown")
-
-                            <!-- Vigencia -->
-                            @{
-                                ViewData["fieldName"] = "VigenciaId";
-                                ViewData["label"] = "Vigencia";
-                                ViewData["options"] = ViewBag.Vigencias;
-                                ViewData["selectedValue"] = Model?.VigenciaId?.ToString();
-                                ViewData["placeholder"] = "Seleccione una vigencia (opcional)";
-                                ViewData["required"] = "False";
-                                ViewData["icon"] = "fa-calendar";
-                            }
-                            @await Html.PartialAsync("_SimpleDropdown")
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                @Html.TextAreaFor(model => model.Descripcion, new { 
+                                    @class = "form-control", 
+                                    rows = "3",
+                                    placeholder = "Descripción de la actividad",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
 
                             <!-- Porcentaje Avance -->
                             <div class="col-md-6">
@@ -204,19 +183,51 @@
                                 @Html.ValidationMessageFor(model => model.FechaFin, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
 
-                            <!-- Descripción -->
+                            <!-- Proyecto -->
+                            @{
+                                ViewData["fieldName"] = "ProyectoId";
+                                ViewData["label"] = "Proyecto";
+                                ViewData["options"] = ViewBag.Proyectos;
+                                ViewData["selectedValue"] = Model?.ProyectoId.ToString();
+                                ViewData["placeholder"] = "Seleccione un proyecto (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-project-diagram";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Responsable -->
+                            @{
+                                ViewData["fieldName"] = "ResponsableId";
+                                ViewData["label"] = "Responsable";
+                                ViewData["options"] = ViewBag.Responsables;
+                                ViewData["selectedValue"] = Model?.ResponsableId?.ToString();
+                                ViewData["placeholder"] = "Seleccione un responsable (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-user-tie";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Vigencia -->
+                            @{
+                                ViewData["fieldName"] = "VigenciaId";
+                                ViewData["label"] = "Vigencia";
+                                ViewData["options"] = ViewBag.Vigencias;
+                                ViewData["selectedValue"] = Model?.VigenciaId?.ToString();
+                                ViewData["placeholder"] = "Seleccione una vigencia (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-calendar";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Activo -->
                             <div class="col-12">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-align-left me-2"></i>
-                                    @Html.DisplayNameFor(model => model.Descripcion)
-                                </label>
-                                @Html.TextAreaFor(model => model.Descripcion, new { 
-                                    @class = "form-control", 
-                                    rows = "3",
-                                    placeholder = "Descripción de la actividad",
-                                    autocomplete = "off"
-                                })
-                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="Activo" name="Activo" value="true" @(Model?.Activo == true ? "checked" : "") />
+                                    <input type="hidden" name="Activo" value="false" />
+                                    <label class="form-check-label" for="Activo">
+                                        @Html.DisplayNameFor(model => model.Activo)
+                                    </label>
+                                </div>
                             </div>
                         </div>
 

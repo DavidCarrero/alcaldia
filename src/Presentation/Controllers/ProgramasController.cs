@@ -95,6 +95,11 @@ public class ProgramasController : BaseController
             // Asignar alcaldía del usuario logueado
             model.AlcaldiaId = ObtenerAlcaldiaId();
             
+            // Normalizar FK opcionales (convertir 0 a null)
+            model.SectorId = NormalizarIdOpcional(model.SectorId);
+            model.ODSId = NormalizarIdOpcional(model.ODSId);
+            model.PlanMunicipalId = NormalizarIdOpcional(model.PlanMunicipalId);
+            
             await _programaService.CreateProgramaAsync(model);
             TempData["Success"] = "Programa creado exitosamente";
             return RedirectToAction(nameof(Index));

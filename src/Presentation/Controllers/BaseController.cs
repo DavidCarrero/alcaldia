@@ -91,4 +91,14 @@ public class BaseController : Controller
     {
         return AlcaldiaIdUsuarioActual ?? 0;
     }
+
+    /// <summary>
+    /// Convierte un ID con valor 0 a null para FK opcionales
+    /// </summary>
+    /// <param name="id">El ID a validar</param>
+    /// <returns>El ID si es mayor a 0, o null si es 0 o menor</returns>
+    protected int? NormalizarIdOpcional(int? id)
+    {
+        return id.HasValue && id.Value > 0 ? id.Value : null;
+    }
 }

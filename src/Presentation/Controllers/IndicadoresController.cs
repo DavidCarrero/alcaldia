@@ -83,6 +83,10 @@ public class IndicadoresController : BaseController
             // Asignar alcaldía del usuario logueado
             model.AlcaldiaId = ObtenerAlcaldiaId();
             
+            // Normalizar FK opcionales (convertir 0 a null)
+            model.ProductoId = NormalizarIdOpcional(model.ProductoId);
+            model.ResponsableId = NormalizarIdOpcional(model.ResponsableId);
+            
             await _indicadorService.CreateIndicadorAsync(model);
             TempData["Success"] = "Indicador creado exitosamente";
             return RedirectToAction(nameof(Index));

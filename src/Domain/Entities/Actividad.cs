@@ -29,10 +29,10 @@ public class Actividad : BaseEntity
     public string? Descripcion { get; set; }
 
     [Column("proyecto_id")]
-    public int ProyectoId { get; set; }
+    public int? ProyectoId { get; set; }
 
     [ForeignKey("ProyectoId")]
-    public Proyecto Proyecto { get; set; } = null!;
+    public Proyecto? Proyecto { get; set; }
 
     [Column("responsable_id")]
     public int? ResponsableId { get; set; }

@@ -72,6 +72,9 @@ public class ProductosController : BaseController
             // Asignar alcaldía del usuario logueado
             model.AlcaldiaId = ObtenerAlcaldiaId();
             
+            // Normalizar FK opcionales (convertir 0 a null)
+            model.ProgramaId = NormalizarIdOpcional(model.ProgramaId);
+            
             await _productoService.CreateProductoAsync(model);
             TempData["Success"] = "Producto creado exitosamente";
             return RedirectToAction(nameof(Index));

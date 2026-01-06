@@ -95,6 +95,11 @@ public class ActividadesController : BaseController
             // Asignar alcaldía del usuario logueado
             model.AlcaldiaId = ObtenerAlcaldiaId();
             
+            // Normalizar FK opcionales (convertir 0 a null)
+            model.ProyectoId = NormalizarIdOpcional(model.ProyectoId);
+            model.ResponsableId = NormalizarIdOpcional(model.ResponsableId);
+            model.VigenciaId = NormalizarIdOpcional(model.VigenciaId);
+            
             await _actividadService.CreateActividadAsync(model);
             TempData["Success"] = "Actividad creada exitosamente";
             return RedirectToAction(nameof(Index));

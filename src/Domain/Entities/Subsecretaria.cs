@@ -29,10 +29,10 @@ public class Subsecretaria : BaseEntity
     public string? Descripcion { get; set; }
 
     [Column("secretaria_id")]
-    public int SecretariaId { get; set; }
+    public int? SecretariaId { get; set; }
 
     [ForeignKey("SecretariaId")]
-    public Secretaria Secretaria { get; set; } = null!;
+    public Secretaria? Secretaria { get; set; }
 
     [MaxLength(200)]
     [Column("responsable")]

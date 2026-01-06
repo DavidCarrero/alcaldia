@@ -45,18 +45,6 @@
                         }
                         
                         <div class="row g-3">
-                            <!-- Responsable -->
-                            @{
-                                ViewData["fieldName"] = "ResponsableId";
-                                ViewData["label"] = "Responsable";
-                                ViewData["options"] = ViewBag.Responsables;
-                                ViewData["selectedValue"] = Model?.ResponsableId?.ToString();
-                                ViewData["placeholder"] = "Seleccione un responsable (opcional)";
-                                ViewData["required"] = "False";
-                                ViewData["icon"] = "fa-user-tie";
-                            }
-                            @await Html.PartialAsync("_SimpleDropdown")
-
                             <!-- Código -->
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">
@@ -119,6 +107,21 @@
                                     autocomplete = "off"
                                 })
                                 @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                @Html.TextAreaFor(model => model.Descripcion, new { 
+                                    @class = "form-control", 
+                                    rows = "4",
+                                    placeholder = "Descripción del proyecto",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
 
                             <!-- Valor Proyecto -->
@@ -197,6 +200,18 @@
                                 @Html.ValidationMessageFor(model => model.FechaFin, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
 
+                            <!-- Responsable -->
+                            @{
+                                ViewData["fieldName"] = "ResponsableId";
+                                ViewData["label"] = "Responsable";
+                                ViewData["options"] = ViewBag.Responsables;
+                                ViewData["selectedValue"] = Model?.ResponsableId?.ToString();
+                                ViewData["placeholder"] = "Seleccione un responsable (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-user-tie";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
                             <!-- Estado Proyecto -->
                             <div class="col-12">
                                 <div class="form-check form-switch">
@@ -206,21 +221,6 @@
                                         @Html.DisplayNameFor(model => model.EstadoProyecto)
                                     </label>
                                 </div>
-                            </div>
-
-                            <!-- Descripción -->
-                            <div class="col-12">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-align-left me-2"></i>
-                                    @Html.DisplayNameFor(model => model.Descripcion)
-                                </label>
-                                @Html.TextAreaFor(model => model.Descripcion, new { 
-                                    @class = "form-control", 
-                                    rows = "4",
-                                    placeholder = "Descripción del proyecto",
-                                    autocomplete = "off"
-                                })
-                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
                         </div>
 

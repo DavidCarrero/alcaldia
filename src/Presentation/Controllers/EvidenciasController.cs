@@ -72,6 +72,9 @@ public class EvidenciasController : BaseController
             // Asignar alcaldía del usuario logueado
             model.AlcaldiaId = ObtenerAlcaldiaId();
             
+            // Normalizar FK opcionales (convertir 0 a null)
+            model.ActividadId = NormalizarIdOpcional(model.ActividadId);
+            
             await _evidenciaService.CreateEvidenciaAsync(model);
             TempData["Success"] = "Evidencia creada exitosamente";
             return RedirectToAction(nameof(Index));
