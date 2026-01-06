@@ -1,0 +1,202 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.IndicadorViewModel>
+
+@{
+    ViewData["Title"] = "Indicadores";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Medición", null),
+        ("Indicadores", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <header class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Indicadores</h2>
+            <p class="text-muted">Gestione los indicadores de medición y seguimiento</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Indicador
+            </a>
+        </div>
+    </header>
+
+    <!-- Tarjetas de Estadísticas -->
+    <section class="row g-4 mb-4" aria-label="Estadísticas de indicadores">
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Indicadores</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <small class="text-primary">Registrados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-bullseye fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Con Meta Final</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count(i => i.MetaFinal.HasValue)</h3>
+                            <small class="text-success">Con metas definidas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-user-tie fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Con Responsable</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count(i => i.ResponsableId.HasValue)</h3>
+                            <small class="text-info">Asignados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Barra de Búsqueda -->
+    <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de indicadores">
+        <div class="card-body">
+            <form asp-action="Index" method="get" id="searchForm">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchTerm" 
+                           class="form-control border-start-0" 
+                           placeholder="Buscar por código o nombre..."
+                           value="@ViewData["SearchTerm"]"
+                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Tabla de Indicadores -->
+    <section class="card border-0 shadow-sm" aria-label="Listado de indicadores">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de Indicadores</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Producto</th>
+                            <th>Unidad Medida</th>
+                            <th>Línea Base</th>
+                            <th>Meta Final</th>
+                            <th>Responsable</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var indicador in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">@indicador.Codigo</span></td>
+                                <td><span class="fw-bold">@indicador.Nombre</span></td>
+                                <td>@indicador.NombreProducto</td>
+                                <td>@indicador.UnidadMedida</td>
+                                <td>@(indicador.LineaBase?.ToString("N2") ?? "-")</td>
+                                <td>
+                                    @if (indicador.MetaFinal.HasValue)
+                                    {
+                                        <span class="badge bg-success">@indicador.MetaFinal.Value.ToString("N2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>@indicador.NombreResponsable</td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@indicador.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn-action btn-delete" 
+                                                onclick="confirmDelete('@Url.Action("Delete", "Indicadores", new { id = indicador.Id })', '@indicador.Codigo', '@Url.Action("Index", "Indicadores")')"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--theme-primary-light, rgba(13, 110, 253, 0.05));
+            transform: scale(1.01);
+        }
+
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.15);
+        }
+    </style>
+}

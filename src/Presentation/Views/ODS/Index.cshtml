@@ -5,7 +5,7 @@
     Layout = "_LayoutDashboard";
 }
 
-<main class="container-fluid" x-data="{ searchTerm: '' }">
+<main class="container-fluid">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("Configuración", null),
         ("ODS", null)
@@ -25,11 +25,11 @@
                 <i class="fas fa-plus me-2"></i>Nuevo ODS
             </a>
         </div>
-    </div>
+    </header>
 
     <!-- Tarjetas de Estadísticas -->
     <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
@@ -48,7 +48,7 @@
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
@@ -67,38 +67,19 @@
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="bg-danger bg-gradient rounded-3 p-3 text-white">
-                                <i class="fas fa-exclamation-circle fa-2x"></i>
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-bullseye fa-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Impacto Alto</h6>
-                            <h3 class="mb-0 fw-bold">@ViewBag.ImpactoAlto</h3>
-                            <small class="text-danger">Prioridad alta</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="bg-warning bg-gradient rounded-3 p-3 text-white">
-                                <i class="fas fa-chart-line fa-2x"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Impacto Medio</h6>
-                            <h3 class="mb-0 fw-bold">@ViewBag.ImpactoMedio</h3>
-                            <small class="text-warning">Prioridad media</small>
+                            <h6 class="text-muted mb-1">Metas Asociadas</h6>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TotalMetas</h3>
+                            <small class="text-info">Vinculadas</small>
                         </div>
                     </div>
                 </div>
@@ -107,18 +88,23 @@
     </div>
 
     <!-- Barra de Búsqueda -->
-    <div class="card border-0 shadow-sm mb-4">
+    <section class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <div class="input-group">
-                <span class="input-group-text bg-light border-end-0">
-                    <i class="fas fa-search text-muted"></i>
-                </span>
-                <input type="text" class="form-control border-start-0" 
-                       x-model="searchTerm"
-                       placeholder="Buscar por código, nombre o descripción...">
-            </div>
+            <form asp-action="Index" method="get" id="searchForm">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchTerm" 
+                           class="form-control border-start-0" 
+                           placeholder="Buscar por código o nombre..."
+                           value="@ViewData["SearchTerm"]"
+                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                </div>
+            </form>
         </div>
-    </div>
+    </section>
 
     <!-- Tabla de ODS -->
     <div class="card border-0 shadow-sm">
@@ -133,11 +119,10 @@
                             <th>Código</th>
                             <th>Nombre</th>
                             <th>Descripción</th>
-                            <th>Nivel Impacto</th>
-                            <th>Estado</th>
                             <th>Metas ODS</th>
                             <th>Fecha Inicio</th>
                             <th>Fecha Fin</th>
+                            <th class="text-center">Estado</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -162,27 +147,14 @@
                                     }
                                 </td>
                                 <td>
-                                    @if (ods.NivelImpacto == "Alta")
-                                    {
-                                        <span class="badge bg-danger">
-                                            <i class="fas fa-arrow-up me-1"></i>Alta
-                                        </span>
-                                    }
-                                    else if (ods.NivelImpacto == "Media")
-                                    {
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="fas fa-minus me-1"></i>Media
-                                        </span>
-                                    }
-                                    else if (ods.NivelImpacto == "Baja")
-                                    {
-                                        <span class="badge bg-info">
-                                            <i class="fas fa-arrow-down me-1"></i>Baja
-                                        </span>
-                                    }
+                                    <span class="badge bg-primary rounded-pill">
+                                        @ods.MetasODSIds.Count metas
+                                    </span>
                                 </td>
-                                <td>
-                                    @if (ods.Estado == "ACTIVO")
+                                <td>@(ods.FechaInicio?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                <td>@(ods.FechaFin?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                <td class="text-center">
+                                    @if (ods.Activo)
                                     {
                                         <span class="badge bg-success">
                                             <i class="fas fa-check-circle me-1"></i>Activo
@@ -195,13 +167,6 @@
                                         </span>
                                     }
                                 </td>
-                                <td>
-                                    <span class="badge bg-primary rounded-pill">
-                                        @ods.MetasODSIds.Count metas
-                                    </span>
-                                </td>
-                                <td>@(ods.FechaInicio?.ToString("dd/MM/yyyy") ?? "N/A")</td>
-                                <td>@(ods.FechaFin?.ToString("dd/MM/yyyy") ?? "N/A")</td>
                                 <td>
                                     <div class="d-flex gap-2 justify-content-center">
                                         <a asp-action="Edit" asp-route-id="@ods.Id" 

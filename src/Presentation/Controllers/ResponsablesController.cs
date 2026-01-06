@@ -45,7 +45,12 @@ public class ResponsablesController : BaseController
     // GET: Responsables/Create
     public IActionResult Create()
     {
-        return View("Form", new ResponsableViewModel { Activo = true });
+        var model = new ResponsableViewModel
+        {
+            Activo = true,
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     // POST: Responsables/Create
@@ -60,6 +65,15 @@ public class ResponsablesController : BaseController
 
         try
         {
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
+            {
+                return View("Form", viewModel);
+            }
+
+            // Asignar alcaldía del usuario logueado
+            viewModel.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _responsableService.CreateAsync(viewModel);
             TempData["Success"] = $"El responsable '{viewModel.NombreCompleto}' ha sido creado exitosamente.";
             return RedirectToAction(nameof(Index));

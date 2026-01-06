@@ -45,7 +45,12 @@ public class SubsecretariasController : BaseController
     // GET: Subsecretarias/Create
     public IActionResult Create()
     {
-        return View("Form", new SubsecretariaViewModel { Activo = true });
+        var model = new SubsecretariaViewModel
+        {
+            Activo = true,
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     // POST: Subsecretarias/Create
@@ -60,6 +65,15 @@ public class SubsecretariasController : BaseController
 
         try
         {
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
+            {
+                return View("Form", viewModel);
+            }
+
+            // Asignar alcaldía del usuario logueado
+            viewModel.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _subsecretariaService.CreateAsync(viewModel);
             TempData["Success"] = $"La subsecretaría '{viewModel.Nombre}' ha sido creada exitosamente.";
             return RedirectToAction(nameof(Index));

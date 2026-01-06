@@ -41,7 +41,11 @@ public class ProyectosController : BaseController
         var responsables = await _responsableService.GetAllAsync(incluirInactivos: false);
         ViewBag.Responsables = responsables.Select(r => new { Id = r.Id, Text = $"{r.NumeroIdentificacion} - {r.NombreCompleto}" });
 
-        return View("Form", new ProyectoViewModel());
+        var model = new ProyectoViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -57,14 +61,17 @@ public class ProyectosController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var responsables = await _responsableService.GetAllAsync(incluirInactivos: false);
+                ViewBag.Responsables = responsables.Select(r => new { Id = r.Id, Text = $"{r.NumeroIdentificacion} - {r.NombreCompleto}" });
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _proyectoService.CreateProyectoAsync(model);
             TempData["Success"] = "Proyecto creado exitosamente";
             return RedirectToAction(nameof(Index));

@@ -38,8 +38,6 @@ public class ODSService : IODSService
             Descripcion = model.Descripcion,
             FechaInicio = model.FechaInicio,
             FechaFin = model.FechaFin,
-            NivelImpacto = model.NivelImpacto,
-            Estado = model.Estado ?? "ACTIVO",
             Activo = model.Activo,
             FechaCreacion = DateTime.UtcNow,
             FechaActualizacion = DateTime.UtcNow
@@ -79,8 +77,6 @@ public class ODSService : IODSService
         ods.Descripcion = model.Descripcion;
         ods.FechaInicio = model.FechaInicio;
         ods.FechaFin = model.FechaFin;
-        ods.NivelImpacto = model.NivelImpacto;
-        ods.Estado = model.Estado ?? "ACTIVO";
         ods.Activo = model.Activo;
 
         await _unitOfWork.ODS.UpdateAsync(ods);
@@ -138,8 +134,6 @@ public class ODSService : IODSService
             Descripcion = ods.Descripcion,
             FechaInicio = ods.FechaInicio,
             FechaFin = ods.FechaFin,
-            NivelImpacto = ods.NivelImpacto,
-            Estado = ods.Estado,
             Activo = ods.Activo,
             MetasODSIds = metasODSIds
         };

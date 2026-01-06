@@ -45,7 +45,11 @@ public class UsuariosController : BaseController
     public async Task<IActionResult> Create()
     {
         ViewBag.Roles = await _rolService.GetAllRolesAsync();
-        return View("Form", new CrearUsuarioViewModel());
+        var model = new CrearUsuarioViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -60,6 +64,16 @@ public class UsuariosController : BaseController
 
         try
         {
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
+            {
+                ViewBag.Roles = await _rolService.GetAllRolesAsync();
+                return View("Form", model);
+            }
+
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _usuarioService.CreateUsuarioAsync(model);
             TempData["Success"] = "Usuario creado exitosamente";
             return RedirectToAction(nameof(Index));

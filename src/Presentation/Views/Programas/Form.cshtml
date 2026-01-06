@@ -1,0 +1,189 @@
+@model Proyecto_alcaldia.Application.ViewModels.ProgramaViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+    ViewData["Title"] = isEdit ? "Editar Programa" : "Nuevo Programa";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Planificación", null),
+        ("Programas", Url.Action("Index", "Programas")),
+        (isEdit ? "Editar Programa" : "Nuevo Programa", null)
+    })
+
+    <section class="row justify-content-center">
+        <div class="col-lg-8">
+            <article class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-sitemap me-2"></i>@(isEdit ? "Editar" : "Nuevo") Programa
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Errores de Validación</h5>
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    
+                    <form asp-action="@action" asp-controller="Programas" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- Código -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Codigo)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Codigo, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Ingrese el código",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-heading me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Nombre)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Nombre, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre del programa",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Meta Resultado -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-bullseye me-2"></i>
+                                    @Html.DisplayNameFor(model => model.MetaResultado)
+                                </label>
+                                @Html.TextBoxFor(model => model.MetaResultado, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Meta de resultado del programa",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.MetaResultado, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                @Html.TextAreaFor(model => model.Descripcion, new { 
+                                    @class = "form-control", 
+                                    rows = "4",
+                                    placeholder = "Descripción del programa",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Presupuesto Cuatrienio -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-dollar-sign me-2"></i>
+                                    @Html.DisplayNameFor(model => model.PresupuestoCuatrienio)
+                                </label>
+                                @Html.TextBoxFor(model => model.PresupuestoCuatrienio, new { 
+                                    @class = "form-control",
+                                    type = "number",
+                                    step = "0.01",
+                                    placeholder = "0.00",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.PresupuestoCuatrienio, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Sector -->
+                            @{
+                                ViewData["fieldName"] = "SectorId";
+                                ViewData["label"] = "Sector";
+                                ViewData["options"] = ViewBag.Sectores;
+                                ViewData["selectedValue"] = Model?.SectorId.ToString();
+                                ViewData["placeholder"] = "Seleccione un sector (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-layer-group";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- ODS -->
+                            @{
+                                ViewData["fieldName"] = "ODSId";
+                                ViewData["label"] = "ODS (Objetivo de Desarrollo Sostenible)";
+                                ViewData["options"] = ViewBag.ODS;
+                                ViewData["selectedValue"] = Model?.ODSId?.ToString();
+                                ViewData["placeholder"] = "Seleccione un ODS (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-globe";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Plan Municipal -->
+                            @{
+                                ViewData["fieldName"] = "PlanMunicipalId";
+                                ViewData["label"] = "Plan Municipal";
+                                ViewData["options"] = ViewBag.PlanesMunicipales;
+                                ViewData["selectedValue"] = Model?.PlanMunicipalId?.ToString();
+                                ViewData["placeholder"] = "Seleccione un plan municipal (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-file-alt";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Activo -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input", @checked = Model?.Activo ?? true })
+                                    <label class="form-check-label" for="Activo">
+                                        @Html.DisplayNameFor(model => model.Activo)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>@(isEdit ? "Guardar Cambios" : "Crear Programa")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -34,14 +34,6 @@ public class ODS : BaseEntity
     [Column("fecha_fin")]
     public DateTime? FechaFin { get; set; }
 
-    [MaxLength(20)]
-    [Column("nivel_impacto")]
-    public string? NivelImpacto { get; set; }
-
-    [MaxLength(20)]
-    [Column("estado")]
-    public string Estado { get; set; } = "ACTIVO";
-
     public ICollection<Programa> Programas { get; set; } = new List<Programa>();
     public ICollection<ODSMetaODS> ODSMetasODS { get; set; } = new List<ODSMetaODS>();
 }

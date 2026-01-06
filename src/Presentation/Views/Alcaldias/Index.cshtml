@@ -5,7 +5,7 @@
     Layout = "_LayoutDashboard";
 }
 
-<main class="container-fluid" x-data="{ searchTerm: '' }">
+<main class="container-fluid">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
         ("Configuración", null),
         ("Alcaldías", null)
@@ -90,14 +90,19 @@
     <!-- Barra de Búsqueda -->
     <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de alcaldías">
         <div class="card-body">
-            <div class="input-group">
-                <span class="input-group-text bg-light border-end-0">
-                    <i class="fas fa-search text-muted"></i>
-                </span>
-                <input type="text" class="form-control border-start-0" 
-                       x-model="searchTerm"
-                       placeholder="Buscar por NIT, municipio o departamento...">
-            </div>
+            <form asp-action="Index" method="get" id="searchForm">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchTerm" 
+                           class="form-control border-start-0" 
+                           placeholder="Buscar por NIT o municipio..."
+                           value="@ViewData["SearchTerm"]"
+                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                </div>
+            </form>
         </div>
     </section>
 
@@ -124,11 +129,7 @@
                     <tbody>
                         @foreach (var alcaldia in Model)
                         {
-                            <tr x-show="searchTerm === '' || 
-                                       '@alcaldia.Nit'.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                       '@alcaldia.NombreMunicipio'.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                       '@alcaldia.NombreDepartamento'.toLowerCase().includes(searchTerm.toLowerCase())" 
-                                x-cloak>
+                            <tr>
                                 <td>
                                     @if (!string.IsNullOrEmpty(alcaldia.Logo))
                                     {

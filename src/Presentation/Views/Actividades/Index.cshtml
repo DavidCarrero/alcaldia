@@ -1,0 +1,213 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.ActividadViewModel>
+
+@{
+    ViewData["Title"] = "Actividades";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Ejecución", null),
+        ("Actividades", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <header class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-tasks"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Actividades</h2>
+            <p class="text-muted">Gestione las actividades de los proyectos</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nueva Actividad
+            </a>
+        </div>
+    </header>
+
+    <!-- Tarjetas de Estadísticas -->
+    <section class="row g-4 mb-4" aria-label="Estadísticas de actividades">
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-tasks fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Actividades</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <small class="text-primary">Registradas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Actividades Activas</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count(a => a.Activo)</h3>
+                            <small class="text-success">En el sistema</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-percent fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Avance Promedio</h6>
+                            <h3 class="mb-0 fw-bold">@(Model.Any() ? Model.Average(a => a.PorcentajeAvance ?? 0).ToString("N1") : "0.0")%</h3>
+                            <small class="text-info">De ejecución</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Barra de Búsqueda -->
+    <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de actividades">
+        <div class="card-body">
+            <form asp-action="Index" method="get" id="searchForm">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchTerm" 
+                           class="form-control border-start-0" 
+                           placeholder="Buscar por código o nombre..."
+                           value="@ViewData["SearchTerm"]"
+                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Tabla de Actividades -->
+    <section class="card border-0 shadow-sm" aria-label="Listado de actividades">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de Actividades</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Proyecto</th>
+                            <th>Tipo</th>
+                            <th>Responsable</th>
+                            <th>Presupuesto</th>
+                            <th>% Avance</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var actividad in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">@actividad.Codigo</span></td>
+                                <td><span class="fw-bold">@actividad.Nombre</span></td>
+                                <td>@actividad.NombreProyecto</td>
+                                <td>@actividad.TipoActividad</td>
+                                <td>@actividad.NombreResponsable</td>
+                                <td>@((actividad.MetaPlaneada ?? 0).ToString("N0"))</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: @(actividad.PorcentajeAvance ?? 0)%"
+                                             aria-valuenow="@(actividad.PorcentajeAvance ?? 0)" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                            @(actividad.PorcentajeAvance?.ToString("N0") ?? "0")%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (actividad.Estado == true)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@actividad.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn-action btn-delete" 
+                                                onclick="confirmDelete('@Url.Action("Delete", "Actividades", new { id = actividad.Id })', '@actividad.Codigo', '@Url.Action("Index", "Actividades")')"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--theme-primary-light, rgba(13, 110, 253, 0.05));
+            transform: scale(1.01);
+        }
+
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.15);
+        }
+    </style>
+}

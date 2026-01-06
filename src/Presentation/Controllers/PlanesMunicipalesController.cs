@@ -59,7 +59,11 @@ public class PlanesMunicipalesController : BaseController
         var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
         ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
 
-        return View("Form", new PlanMunicipalViewModel());
+        var model = new PlanMunicipalViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -85,14 +89,21 @@ public class PlanesMunicipalesController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var municipios = await _municipioService.GetAllMunicipiosAsync(incluirInactivos: false);
+                ViewBag.Municipios = municipios.Select(m => new { Id = m.Id, Text = $"{m.Codigo} - {m.Nombre}" });
+
+                var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
+                ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
+
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _planMunicipalService.CreatePlanMunicipalAsync(model);
             TempData["Success"] = "Plan municipal creado exitosamente";
             return RedirectToAction(nameof(Index));

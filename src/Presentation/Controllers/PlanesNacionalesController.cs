@@ -41,7 +41,11 @@ public class PlanesNacionalesController : BaseController
         var sectores = await _sectorService.GetAllSectoresAsync(incluirInactivas: false);
         ViewBag.Sectores = sectores.Select(s => new { Id = s.Id, Text = $"{s.Codigo} - {s.Nombre}" });
 
-        return View("Form", new PlanNacionalViewModel());
+        var model = new PlanNacionalViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -57,14 +61,17 @@ public class PlanesNacionalesController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var sectores = await _sectorService.GetAllSectoresAsync(incluirInactivas: false);
+                ViewBag.Sectores = sectores.Select(s => new { Id = s.Id, Text = $"{s.Codigo} - {s.Nombre}" });
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _planNacionalService.CreatePlanNacionalAsync(model);
             TempData["Success"] = "Plan nacional creado exitosamente";
             return RedirectToAction(nameof(Index));

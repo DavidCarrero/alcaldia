@@ -35,7 +35,11 @@ public class VigenciasController : BaseController
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        return View("Form", new VigenciaViewModel());
+        var model = new VigenciaViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -49,14 +53,15 @@ public class VigenciasController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _vigenciaService.CreateVigenciaAsync(model);
             TempData["Success"] = "Vigencia creada exitosamente";
             return RedirectToAction(nameof(Index));

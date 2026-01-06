@@ -41,7 +41,11 @@ public class ProductosController : BaseController
         var programas = await _programaService.GetAllProgramasAsync(incluirInactivas: false);
         ViewBag.Programas = programas.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
 
-        return View("Form", new ProductoViewModel());
+        var model = new ProductoViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -57,14 +61,17 @@ public class ProductosController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var programas = await _programaService.GetAllProgramasAsync(incluirInactivas: false);
+                ViewBag.Programas = programas.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _productoService.CreateProductoAsync(model);
             TempData["Success"] = "Producto creado exitosamente";
             return RedirectToAction(nameof(Index));

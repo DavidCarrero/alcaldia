@@ -53,7 +53,11 @@ public class ActividadesController : BaseController
         var vigencias = await _vigenciaService.GetAllVigenciasAsync(incluirInactivas: false);
         ViewBag.Vigencias = vigencias.Select(v => new { Id = v.Id, Text = $"{v.Codigo} - {v.Nombre}" });
 
-        return View("Form", new ActividadViewModel());
+        var model = new ActividadViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -76,14 +80,21 @@ public class ActividadesController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var proyectos = await _proyectoService.GetAllProyectosAsync(incluirInactivas: false);
+                ViewBag.Proyectos = proyectos.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
+
+                var vigencias = await _vigenciaService.GetAllVigenciasAsync(incluirInactivas: false);
+                ViewBag.Vigencias = vigencias.Select(v => new { Id = v.Id, Text = $"{v.Codigo} - {v.Nombre}" });
+
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _actividadService.CreateActividadAsync(model);
             TempData["Success"] = "Actividad creada exitosamente";
             return RedirectToAction(nameof(Index));

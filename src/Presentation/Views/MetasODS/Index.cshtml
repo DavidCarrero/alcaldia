@@ -5,7 +5,7 @@
     Layout = "_LayoutDashboard";
 }
 
-<main class="container-fluid" x-data="{ searchTerm: ''}">
+<main class="container-fluid">
     @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
     ("Configuración", null),
         ("ODS", null),
@@ -14,18 +14,18 @@
 
     <header class="page-header mb-4">
         <div class="page-header-icon">
-            <i class="fas fa-flag-checkered"></i>
+            <i class="fas fa-bullseye"></i>
         </div>
         <div class="page-header-content flex-grow-1">
             <h2>Metas ODS</h2>
-            <p class="text-muted">Configure las metas asociadas a los Objetivos de Desarrollo Sostenible (ODS)</p>
+            <p class="text-muted">Configure las metas asociadas a los Objetivos de Desarrollo Sostenible</p>
         </div>
         <div>
             <a asp-action="Create" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Nueva Meta ODS
+                <i class="fas fa-plus me-2"></i>Nueva Meta ODS
             </a>
         </div>
-    </div>
+    </header>
 
     <div class="row g-4 mb-4">
         <div class="col-xl-4 col-md-6">
@@ -34,7 +34,7 @@
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
-                                <i class="fas fa-building fa-2x"></i>
+                                <i class="fas fa-bullseye fa-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
@@ -72,13 +72,13 @@
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="bg-info bg-gradient rounded-3 p-3 text-white">
-                                <i class="fas fa-map-marker-alt fa-2x"></i>
+                                <i class="fas fa-globe fa-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-1">Metas</h6>
+                            <h6 class="text-muted mb-1">ODS Asociados</h6>
                             <h3 class="mb-0 fw-bold">@Model.Count()</h3>
-                            <small class="text-info">Con ODS asociados</small>
+                            <small class="text-info">Vinculados</small>
                         </div>
                     </div>
                 </div>
@@ -86,17 +86,23 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-4">
+    <section class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <div class="input-group">
-                <span class="input-group-text bg-light border-end-0">
-                    <i class="fas fa-search text-muted"></i>
-                </span>
-                <input type="text" class="form-control border-start-0" x-model="searchTerm"
-                    placeholder="Buscar por Codigo, Nombre, Descripción...">
-            </div>
+            <form asp-action="Index" method="get" id="searchForm">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchTerm" 
+                           class="form-control border-start-0" 
+                           placeholder="Buscar por código o nombre..."
+                           value="@ViewData["SearchTerm"]"
+                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                </div>
+            </form>
         </div>
-    </div>
+    </section>
 
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white py-3">

@@ -21,6 +21,9 @@ public class UsuarioViewModel
     [Display(Name = "Nombre de Usuario")]
     public string? NombreUsuario { get; set; }
 
+    [Display(Name = "Alcaldía")]
+    public int? AlcaldiaId { get; set; }
+
     [Display(Name = "Roles Asignados")]
     public List<int> RolesSeleccionados { get; set; } = new List<int>();
 

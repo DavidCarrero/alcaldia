@@ -728,12 +728,6 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnType("text")
                         .HasColumnName("descripcion");
 
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("estado");
-
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("timestamp with time zone");
 
@@ -749,11 +743,6 @@ namespace Proyecto_alcaldia.Migrations
                     b.Property<DateTime?>("FechaInicio")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_inicio");
-
-                    b.Property<string>("NivelImpacto")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("nivel_impacto");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -1638,6 +1627,10 @@ namespace Proyecto_alcaldia.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("activo");
 
+                    b.Property<int?>("AlcaldiaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("alcaldia_id");
+
                     b.Property<string>("ContrasenaHash")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -1683,6 +1676,8 @@ namespace Proyecto_alcaldia.Migrations
                         .HasColumnName("ultimo_acceso");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AlcaldiaId");
 
                     b.HasIndex("CorreoElectronico")
                         .IsUnique();
@@ -2228,6 +2223,15 @@ namespace Proyecto_alcaldia.Migrations
                     b.Navigation("Alcaldia");
 
                     b.Navigation("Secretaria");
+                });
+
+            modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.Usuario", b =>
+                {
+                    b.HasOne("Proyecto_alcaldia.Domain.Entities.Alcaldia", "Alcaldia")
+                        .WithMany()
+                        .HasForeignKey("AlcaldiaId");
+
+                    b.Navigation("Alcaldia");
                 });
 
             modelBuilder.Entity("Proyecto_alcaldia.Domain.Entities.UsuarioRol", b =>

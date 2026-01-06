@@ -47,7 +47,11 @@ public class IndicadoresController : BaseController
         var productos = await _productoService.GetAllProductosAsync(incluirInactivas: false);
         ViewBag.Productos = productos.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
 
-        return View("Form", new IndicadorViewModel());
+        var model = new IndicadorViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -67,14 +71,18 @@ public class IndicadoresController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var productos = await _productoService.GetAllProductosAsync(incluirInactivas: false);
+                ViewBag.Productos = productos.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
+
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _indicadorService.CreateIndicadorAsync(model);
             TempData["Success"] = "Indicador creado exitosamente";
             return RedirectToAction(nameof(Index));

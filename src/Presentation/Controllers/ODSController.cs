@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Proyecto_alcaldia.Application.Services;
 using Proyecto_alcaldia.Application.ViewModels;
 using Proyecto_alcaldia.Infrastructure.Data;
@@ -45,12 +46,8 @@ public class ODSController : BaseController
         // KPIs válidos
         var todasMetasODS = await _metaODSService.GetAllMetasODSAsync();
         var totalMetas = todasMetasODS.Count();
-        var metasActivas = todasMetasODS.Count(m => m.Activo);
         
         ViewBag.TotalMetas = totalMetas;
-        ViewBag.MetasActivas = metasActivas;
-        ViewBag.ImpactoAlto = todosODS.Count(o => o.NivelImpacto == "Alta");
-        ViewBag.ImpactoMedio = todosODS.Count(o => o.NivelImpacto == "Media");
 
         return View(ods);
     }
@@ -58,7 +55,12 @@ public class ODSController : BaseController
     public async Task<IActionResult> Create()
     {
         await CargarDatosFormulario();
-        return View("Form", new ODSViewModel());
+        
+        var model = new ODSViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -69,6 +71,15 @@ public class ODSController : BaseController
         {
             try
             {
+                // Validar que el usuario tenga una alcaldía asignada
+                if (!ValidarAlcaldiaId())
+                {
+                    return View(model);
+                }
+
+                // Asignar alcaldía del usuario logueado
+                model.AlcaldiaId = ObtenerAlcaldiaId();
+                
                 await _odsService.CreateODSAsync(model);
                 TempData["Success"] = "ODS creado exitosamente";
                 return RedirectToAction(nameof(Index));
@@ -137,36 +148,8 @@ public class ODSController : BaseController
 
     private async Task CargarDatosFormulario()
     {
-        // Cargar alcaldías disponibles
-        var alcaldias = _context.Alcaldias
-            .Where(a => a.Activo)
-            .OrderBy(a => a.Nit)
-            .Select(a => new SelectListItem
-            {
-                Value = a.Id.ToString(),
-                Text = $"{a.Nit} - {a.Municipio.Nombre}"
-            })
-            .ToList();
-
-        ViewBag.Alcaldias = alcaldias;
-
         // Cargar todas las metas ODS
         var metasODS = await _metaODSService.GetAllMetasODSAsync();
         ViewBag.MetasODS = metasODS.Select(m => new { Id = m.Id, Text = $"{m.Codigo} - {m.Nombre}" }).ToList();
-
-        // Niveles de impacto
-        ViewBag.NivelesImpacto = new List<SelectListItem>
-        {
-            new SelectListItem { Value = "Alta", Text = "Alta" },
-            new SelectListItem { Value = "Media", Text = "Media" },
-            new SelectListItem { Value = "Baja", Text = "Baja" }
-        };
-
-        // Estados
-        ViewBag.Estados = new List<SelectListItem>
-        {
-            new SelectListItem { Value = "ACTIVO", Text = "Activo" },
-            new SelectListItem { Value = "INACTIVO", Text = "Inactivo" }
-        };
     }
 }

@@ -29,6 +29,12 @@ public class Usuario : BaseEntity
     [Column("nombre_usuario")]
     public string? NombreUsuario { get; set; }
 
+    [Column("alcaldia_id")]
+    public int? AlcaldiaId { get; set; }
+
+    [ForeignKey("AlcaldiaId")]
+    public Alcaldia? Alcaldia { get; set; }
+
     [Column("ultimo_acceso")]
     public DateTime? UltimoAcceso { get; set; }
 

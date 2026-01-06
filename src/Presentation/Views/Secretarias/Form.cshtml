@@ -159,18 +159,6 @@
                                 @Html.ValidationMessageFor(model => model.PresupuestoAsignado, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
 
-                            <!-- Alcaldía -->
-                            @{
-                                ViewData["fieldName"] = "AlcaldiaId";
-                                ViewData["label"] = "Alcaldía";
-                                ViewData["options"] = ViewBag.Alcaldias;
-                                ViewData["selectedValue"] = Model?.AlcaldiaId.ToString();
-                                ViewData["placeholder"] = "Seleccione una alcaldía";
-                                ViewData["required"] = "True";
-                                ViewData["icon"] = "fa-landmark";
-                            }
-                            @await Html.PartialAsync("_SimpleDropdown")
-
                             <!-- Estado Activo -->
                             <div class="col-12">
                                 <div class="form-check form-switch">

@@ -11,6 +11,7 @@ public class BaseController : Controller
 {
     protected readonly ApplicationDbContext _context;
     private readonly IServiceProvider _serviceProvider;
+    protected int? AlcaldiaIdUsuarioActual { get; private set; }
 
     public BaseController(ApplicationDbContext context, IServiceProvider serviceProvider)
     {
@@ -35,6 +36,7 @@ public class BaseController : Controller
             
             ViewBag.TemaUsuario = usuario?.TemaColor ?? "default";
             ViewBag.NombreUsuario = usuario?.NombreCompleto ?? "Usuario";
+            AlcaldiaIdUsuarioActual = usuario?.AlcaldiaId;
             
             // Cargar y desencriptar foto de perfil si existe
             if (usuario != null && !string.IsNullOrEmpty(usuario.FotoPerfilEncriptada))
@@ -63,6 +65,30 @@ public class BaseController : Controller
             ViewBag.TemaUsuario = "default";
             ViewBag.NombreUsuario = "Usuario";
             ViewBag.FotoPerfilBase64 = null;
+            AlcaldiaIdUsuarioActual = null;
         }
+    }
+
+    /// <summary>
+    /// Valida si el usuario tiene un AlcaldiaId válido asignado
+    /// </summary>
+    /// <returns>True si el AlcaldiaId es válido, False si no</returns>
+    protected bool ValidarAlcaldiaId()
+    {
+        if (!AlcaldiaIdUsuarioActual.HasValue || AlcaldiaIdUsuarioActual.Value == 0)
+        {
+            ModelState.AddModelError("", "No se pudo obtener la alcaldía del usuario. Por favor, contacte al administrador para que le asigne una alcaldía.");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Obtiene el AlcaldiaId del usuario actual o 0 si no tiene asignado
+    /// </summary>
+    /// <returns>AlcaldiaId del usuario o 0</returns>
+    protected int ObtenerAlcaldiaId()
+    {
+        return AlcaldiaIdUsuarioActual ?? 0;
     }
 }

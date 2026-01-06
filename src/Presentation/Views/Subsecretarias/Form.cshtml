@@ -77,25 +77,6 @@
                                 @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
                             </div>
 
-                            <!-- Alcaldía -->
-                            @{
-                                ViewData["fieldName"] = "AlcaldiaId";
-                                ViewData["label"] = "Alcaldía";
-                                ViewData["searchUrl"] = "/Alcaldias/Search";
-                                ViewData["displayField"] = "nit";
-                                ViewData["secondaryField"] = "municipio";
-                                ViewData["icon"] = "fa-landmark";
-                                ViewData["placeholder"] = "Escribe y presiona Enter para buscar...";
-                                ViewData["required"] = "True";
-                                
-                                if (isEdit && Model?.AlcaldiaId > 0)
-                                {
-                                    ViewData["initialValue"] = Model.AlcaldiaId.ToString();
-                                    ViewData["initialDisplay"] = Model.NitAlcaldia;
-                                }
-                            }
-                            @await Html.PartialAsync("_SearchableDropdown")
-
                             <!-- Secretaría -->
                             @{
                                 ViewData["fieldName"] = "SecretariaId";
@@ -104,8 +85,8 @@
                                 ViewData["displayField"] = "codigo";
                                 ViewData["secondaryField"] = "nombre";
                                 ViewData["icon"] = "fa-building";
-                                ViewData["placeholder"] = "Escribe y presiona Enter para buscar...";
-                                ViewData["required"] = "True";
+                                ViewData["placeholder"] = "Escribe y presiona Enter para buscar... (opcional)";
+                                ViewData["required"] = "False";
                                 
                                 if (isEdit && Model?.SecretariaId > 0)
                                 {

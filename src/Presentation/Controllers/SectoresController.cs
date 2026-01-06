@@ -41,7 +41,11 @@ public class SectoresController : BaseController
         var lineasEstrategicas = await _lineaEstrategicaService.GetAllLineasEstrategicasAsync(incluirInactivas: false);
         ViewBag.LineasEstrategicas = lineasEstrategicas.Select(l => new { Id = l.Id, Text = $"{l.Codigo} - {l.Nombre}" });
 
-        return View("Form", new SectorViewModel());
+        var model = new SectorViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -57,14 +61,17 @@ public class SectoresController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var lineasEstrategicas = await _lineaEstrategicaService.GetAllLineasEstrategicasAsync(incluirInactivas: false);
+                ViewBag.LineasEstrategicas = lineasEstrategicas.Select(l => new { Id = l.Id, Text = $"{l.Codigo} - {l.Nombre}" });
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _sectorService.CreateSectorAsync(model);
             TempData["Success"] = "Sector creado exitosamente";
             return RedirectToAction(nameof(Index));

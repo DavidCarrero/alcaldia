@@ -1,0 +1,200 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.ProgramaViewModel>
+
+@{
+    ViewData["Title"] = "Programas";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Planificación", null),
+        ("Programas", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <header class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-sitemap"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Programas</h2>
+            <p class="text-muted">Gestione los programas vinculados a los sectores</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Programa
+            </a>
+        </div>
+    </header>
+
+    <!-- Tarjetas de Estadísticas -->
+    <section class="row g-4 mb-4" aria-label="Estadísticas de programas">
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-sitemap fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Programas</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <small class="text-primary">Registrados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-dollar-sign fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Presupuesto Cuatrienio</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Sum(p => p.PresupuestoCuatrienio ?? 0).ToString("C0")</h3>
+                            <small class="text-success">Total asignado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-box fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Productos Vinculados</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Sum(p => (int?)p.CantidadProductos ?? 0)</h3>
+                            <small class="text-info">Total productos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Barra de Búsqueda -->
+    <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de programas">
+        <div class="card-body">
+            <form asp-action="Index" method="get" id="searchForm">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchTerm" 
+                           class="form-control border-start-0" 
+                           placeholder="Buscar por código o nombre..."
+                           value="@ViewData["SearchTerm"]"
+                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Tabla de Programas -->
+    <section class="card border-0 shadow-sm" aria-label="Listado de programas">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de Programas</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Sector</th>
+                            <th>Descripción</th>
+                            <th>Presupuesto</th>
+                            <th>Meta Resultado</th>
+                            <th class="text-center">Productos</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var programa in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">@programa.Codigo</span></td>
+                                <td><span class="fw-bold">@programa.Nombre</span></td>
+                                <td>@programa.NombreSector</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(programa.Descripcion))
+                                    {
+                                        <span>@(programa.Descripcion.Length > 40 ? programa.Descripcion.Substring(0, 40) + "..." : programa.Descripcion)</span>
+                                    }
+                                </td>
+                                <td>@(programa.PresupuestoCuatrienio?.ToString("C0") ?? "-")</td>
+                                <td>@programa.MetaResultado</td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">@(programa.CantidadProductos)</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@programa.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn-action btn-delete" 
+                                                onclick="confirmDelete('@Url.Action("Delete", "Programas", new { id = programa.Id })', '@programa.Codigo', '@Url.Action("Index", "Programas")')"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--theme-primary-light, rgba(13, 110, 253, 0.05));
+            transform: scale(1.01);
+        }
+
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.15);
+        }
+    </style>
+}

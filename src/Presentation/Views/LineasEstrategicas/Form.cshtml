@@ -1,0 +1,141 @@
+@model Proyecto_alcaldia.Application.ViewModels.LineaEstrategicaViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+    ViewData["Title"] = isEdit ? "Editar Línea Estratégica" : "Nueva Línea Estratégica";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Planificación", null),
+        ("Líneas Estratégicas", Url.Action("Index", "LineasEstrategicas")),
+        (isEdit ? "Editar Línea Estratégica" : "Nueva Línea Estratégica", null)
+    })
+
+    <section class="row justify-content-center">
+        <div class="col-lg-8">
+            <article class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-compass me-2"></i>@(isEdit ? "Editar" : "Nueva") Línea Estratégica
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Errores de Validación</h5>
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    
+                    <form asp-action="@action" asp-controller="LineasEstrategicas" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- Código -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Codigo)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Codigo, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Ingrese el código",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Sigla -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-tag me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Sigla)
+                                </label>
+                                @Html.TextBoxFor(model => model.Sigla, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Sigla o abreviatura",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Sigla, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-heading me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Nombre)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Nombre, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre de la línea estratégica",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                @Html.TextAreaFor(model => model.Descripcion, new { 
+                                    @class = "form-control", 
+                                    rows = "4",
+                                    placeholder = "Descripción detallada de la línea estratégica",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Plan Departamental -->
+                            <div class="col-12">
+                                @await Html.PartialAsync("_SimpleDropdown", new ViewDataDictionary(ViewData) {
+                                    { "fieldName", "PlanDtpId" },
+                                    { "label", "Plan Departamental" },
+                                    { "options", ViewBag.PlanesDepartamentales },
+                                    { "selectedValue", Model?.PlanDtpId?.ToString() },
+                                    { "placeholder", "Seleccione un plan departamental" },
+                                    { "required", "False" },
+                                    { "icon", "fa-file-alt" }
+                                })
+                                @Html.ValidationMessageFor(model => model.PlanDtpId, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>@(isEdit ? "Guardar Cambios" : "Crear Línea Estratégica")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

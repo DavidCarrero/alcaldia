@@ -45,7 +45,12 @@ public class AlcaldesController : BaseController
     // GET: Alcaldes/Create
     public IActionResult Create()
     {
-        return View("Form", new AlcaldeViewModel { Activo = true });
+        var model = new AlcaldeViewModel
+        {
+            Activo = true,
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     // POST: Alcaldes/Create
@@ -60,6 +65,15 @@ public class AlcaldesController : BaseController
 
         try
         {
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
+            {
+                return View("Form", viewModel);
+            }
+
+            // Asignar alcaldía del usuario logueado
+            viewModel.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _alcaldeService.CreateAsync(viewModel);
             TempData["Success"] = $"El alcalde '{viewModel.NombreCompleto}' ha sido creado exitosamente.";
             return RedirectToAction(nameof(Index));

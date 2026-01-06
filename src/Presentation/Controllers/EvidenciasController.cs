@@ -41,7 +41,11 @@ public class EvidenciasController : BaseController
         var actividades = await _actividadService.GetAllActividadesAsync(incluirInactivas: false);
         ViewBag.Actividades = actividades.Select(a => new { Id = a.Id, Text = $"{a.Codigo} - {a.Nombre}" });
 
-        return View("Form", new EvidenciaViewModel());
+        var model = new EvidenciaViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -57,14 +61,17 @@ public class EvidenciasController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var actividades = await _actividadService.GetAllActividadesAsync(incluirInactivas: false);
+                ViewBag.Actividades = actividades.Select(a => new { Id = a.Id, Text = $"{a.Codigo} - {a.Nombre}" });
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _evidenciaService.CreateEvidenciaAsync(model);
             TempData["Success"] = "Evidencia creada exitosamente";
             return RedirectToAction(nameof(Index));

@@ -1,0 +1,227 @@
+@model Proyecto_alcaldia.Application.ViewModels.EvidenciaViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+    ViewData["Title"] = isEdit ? "Editar Evidencia" : "Nueva Evidencia";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Ejecución", null),
+        ("Evidencias", Url.Action("Index", "Evidencias")),
+        (isEdit ? "Editar Evidencia" : "Nueva Evidencia", null)
+    })
+
+    <section class="row justify-content-center">
+        <div class="col-lg-10">
+            <article class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-invoice me-2"></i>@(isEdit ? "Editar" : "Nueva") Evidencia
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Errores de Validación</h5>
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    
+                    <form asp-action="@action" asp-controller="Evidencias" method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- Actividad -->
+                            @{
+                                ViewData["fieldName"] = "ActividadId";
+                                ViewData["label"] = "Actividad";
+                                ViewData["options"] = ViewBag.Actividades;
+                                ViewData["selectedValue"] = Model?.ActividadId.ToString();
+                                ViewData["placeholder"] = "Seleccione una actividad (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-tasks";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Código -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Codigo)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Codigo, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Ingrese el código",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Tipo Evidencia -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-tag me-2"></i>
+                                    @Html.DisplayNameFor(model => model.TipoEvidencia)
+                                </label>
+                                @Html.TextBoxFor(model => model.TipoEvidencia, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Tipo de evidencia",
+                                    maxlength = "5",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.TipoEvidencia, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-heading me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Nombre)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Nombre, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre de la evidencia",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Fecha Captura -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    @Html.DisplayNameFor(model => model.FechaCaptura)
+                                </label>
+                                @Html.TextBoxFor(model => model.FechaCaptura, "{0:yyyy-MM-dd}", new { 
+                                    @class = "form-control",
+                                    type = "date",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.FechaCaptura, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Tomado Por -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-2"></i>
+                                    @Html.DisplayNameFor(model => model.TomadoPor)
+                                </label>
+                                @Html.TextBoxFor(model => model.TomadoPor, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre de quien tomó la evidencia",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.TomadoPor, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre Archivo -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-file me-2"></i>
+                                    @Html.DisplayNameFor(model => model.NombreArchivo)
+                                </label>
+                                @Html.TextBoxFor(model => model.NombreArchivo, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre del archivo",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.NombreArchivo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Tipo MIME -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-file-code me-2"></i>
+                                    @Html.DisplayNameFor(model => model.TipoMime)
+                                </label>
+                                @Html.TextBoxFor(model => model.TipoMime, new { 
+                                    @class = "form-control", 
+                                    placeholder = "application/pdf, image/jpeg, etc.",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.TipoMime, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Tamaño Bytes -->
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-database me-2"></i>
+                                    @Html.DisplayNameFor(model => model.TamanoBytes)
+                                </label>
+                                @Html.TextBoxFor(model => model.TamanoBytes, new { 
+                                    @class = "form-control",
+                                    type = "number",
+                                    step = "1",
+                                    placeholder = "Tamaño en bytes",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.TamanoBytes, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Ruta Archivo -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-folder me-2"></i>
+                                    @Html.DisplayNameFor(model => model.RutaArchivo)
+                                </label>
+                                @Html.TextAreaFor(model => model.RutaArchivo, new { 
+                                    @class = "form-control", 
+                                    rows = "2",
+                                    placeholder = "Ruta del archivo de la evidencia",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.RutaArchivo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                @Html.TextAreaFor(model => model.Descripcion, new { 
+                                    @class = "form-control", 
+                                    rows = "4",
+                                    placeholder = "Descripción de la evidencia",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>@(isEdit ? "Guardar Cambios" : "Crear Evidencia")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

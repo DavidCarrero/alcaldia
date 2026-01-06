@@ -1,0 +1,198 @@
+@model IEnumerable<Proyecto_alcaldia.Application.ViewModels.SectorViewModel>
+
+@{
+    ViewData["Title"] = "Sectores";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Planificación", null),
+        ("Sectores", null)
+    })
+
+    <!-- Encabezado con Icono -->
+    <header class="page-header mb-4">
+        <div class="page-header-icon">
+            <i class="fas fa-layer-group"></i>
+        </div>
+        <div class="page-header-content flex-grow-1">
+            <h2>Sectores</h2>
+            <p class="text-muted">Gestione los sectores asociados a las líneas estratégicas</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Sector
+            </a>
+        </div>
+    </header>
+
+    <!-- Tarjetas de Estadísticas -->
+    <section class="row g-4 mb-4" aria-label="Estadísticas de sectores">
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-layer-group fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total Sectores</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            <small class="text-primary">Registrados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-dollar-sign fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Presupuesto Total</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Sum(s => s.PresupuestoAsignado ?? 0).ToString("C0")</h3>
+                            <small class="text-success">Asignado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient rounded-3 p-3 text-white">
+                                <i class="fas fa-project-diagram fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Programas Vinculados</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Sum(s => (int?)s.CantidadProgramas ?? 0)</h3>
+                            <small class="text-info">Total programas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Barra de Búsqueda -->
+    <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de sectores">
+        <div class="card-body">
+            <form asp-action="Index" method="get" id="searchForm">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchTerm" 
+                           class="form-control border-start-0" 
+                           placeholder="Buscar por código o nombre..."
+                           value="@ViewData["SearchTerm"]"
+                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Tabla de Sectores -->
+    <section class="card border-0 shadow-sm" aria-label="Listado de sectores">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Listado de Sectores</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Línea Estratégica</th>
+                            <th>Descripción</th>
+                            <th>Presupuesto</th>
+                            <th class="text-center">Programas</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sector in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">@sector.Codigo</span></td>
+                                <td><span class="fw-bold">@sector.Nombre</span></td>
+                                <td>@sector.NombreLineaEstrategica</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(sector.Descripcion))
+                                    {
+                                        <span>@(sector.Descripcion.Length > 40 ? sector.Descripcion.Substring(0, 40) + "..." : sector.Descripcion)</span>
+                                    }
+                                </td>
+                                <td>@(sector.PresupuestoAsignado?.ToString("C0") ?? "-")</td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">@(sector.CantidadProgramas)</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@sector.Id" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn-action btn-delete" 
+                                                onclick="confirmDelete('@Url.Action("Delete", "Sectores", new { id = sector.Id })', '@sector.Codigo', '@Url.Action("Index", "Sectores")')"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--theme-primary-light, rgba(13, 110, 253, 0.05));
+            transform: scale(1.01);
+        }
+
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.15);
+        }
+    </style>
+}

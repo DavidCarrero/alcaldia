@@ -11,17 +11,20 @@ public class LineasEstrategicasController : BaseController
 {
     private readonly ILineaEstrategicaService _lineaEstrategicaService;
     private readonly IAlcaldiaService _alcaldiaService;
+    private readonly IPlanDepartamentalService _planDepartamentalService;
     private readonly ILogger<LineasEstrategicasController> _logger;
 
     public LineasEstrategicasController(
         ILineaEstrategicaService lineaEstrategicaService,
         IAlcaldiaService alcaldiaService,
+        IPlanDepartamentalService planDepartamentalService,
         ILogger<LineasEstrategicasController> logger,
         ApplicationDbContext context,
         IServiceProvider serviceProvider) : base(context, serviceProvider)
     {
         _lineaEstrategicaService = lineaEstrategicaService;
         _alcaldiaService = alcaldiaService;
+        _planDepartamentalService = planDepartamentalService;
         _logger = logger;
     }
 
@@ -35,7 +38,14 @@ public class LineasEstrategicasController : BaseController
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        return View("Form", new LineaEstrategicaViewModel());
+        var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
+        ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
+        
+        var model = new LineaEstrategicaViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -44,19 +54,24 @@ public class LineasEstrategicasController : BaseController
     {
         if (!ModelState.IsValid)
         {
+            var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
+            ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
             return View("Form", model);
         }
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
+                ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _lineaEstrategicaService.CreateLineaEstrategicaAsync(model);
             TempData["Success"] = "Línea estratégica creada exitosamente";
             return RedirectToAction(nameof(Index));
@@ -65,6 +80,8 @@ public class LineasEstrategicasController : BaseController
         {
             _logger.LogError(ex, "Error al crear línea estratégica");
             ModelState.AddModelError("", ex.Message);
+            var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
+            ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
             return View("Form", model);
         }
     }
@@ -78,6 +95,9 @@ public class LineasEstrategicasController : BaseController
             return NotFound();
         }
 
+        var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
+        ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
+        
         return View("Form", lineaEstrategica);
     }
 
@@ -87,6 +107,8 @@ public class LineasEstrategicasController : BaseController
     {
         if (!ModelState.IsValid)
         {
+            var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
+            ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
             return View("Form", model);
         }
 
@@ -100,6 +122,8 @@ public class LineasEstrategicasController : BaseController
         {
             _logger.LogError(ex, "Error al actualizar línea estratégica");
             ModelState.AddModelError("", ex.Message);
+            var planesDepartamentales = await _planDepartamentalService.GetAllPlanesDepartamentalesAsync(incluirInactivas: false);
+            ViewBag.PlanesDepartamentales = planesDepartamentales.Select(p => new { Id = p.Id, Text = $"{p.Codigo} - {p.Nombre}" });
             return View("Form", model);
         }
     }

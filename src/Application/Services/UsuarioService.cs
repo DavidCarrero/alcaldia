@@ -56,6 +56,7 @@ public class UsuarioService : IUsuarioService
             NombreCompleto = model.NombreCompleto,
             CorreoElectronico = model.CorreoElectronico,
             NombreUsuario = model.NombreUsuario,
+            AlcaldiaId = model.AlcaldiaId,
             ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(model.Contrasena),
             Activo = model.Activo,
             FechaCreacion = DateTime.UtcNow,
@@ -107,6 +108,7 @@ public class UsuarioService : IUsuarioService
         usuario.NombreCompleto = model.NombreCompleto;
         usuario.CorreoElectronico = model.CorreoElectronico;
         usuario.NombreUsuario = model.NombreUsuario;
+        usuario.AlcaldiaId = model.AlcaldiaId;
         usuario.Activo = model.Activo;
 
         // Actualizar contraseña si se proporciona
@@ -287,6 +289,7 @@ public class UsuarioService : IUsuarioService
             NombreCompleto = usuario.NombreCompleto,
             CorreoElectronico = usuario.CorreoElectronico,
             NombreUsuario = usuario.NombreUsuario,
+            AlcaldiaId = usuario.AlcaldiaId,
             Activo = usuario.Activo,
             UltimoAcceso = usuario.UltimoAcceso,
             RolesSeleccionados = usuario.UsuariosRoles

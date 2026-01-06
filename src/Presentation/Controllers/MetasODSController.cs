@@ -36,15 +36,12 @@ public class MetasODSController : BaseController
     public async Task<IActionResult> Create()
     {
         var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-        var primeraAlcaldia = alcaldias.FirstOrDefault();
-        
-        var model = new MetaODSViewModel();
-        if (primeraAlcaldia != null)
-        {
-            model.AlcaldiaId = primeraAlcaldia.Id;
-        }
-        
         ViewBag.Alcaldias = alcaldias.Select(a => new { Id = a.Id, Text = $"{a.Nit} - {a.NombreMunicipio}" });
+        
+        var model = new MetaODSViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
         return View("Form", model);
     }
 
@@ -61,6 +58,17 @@ public class MetasODSController : BaseController
 
         try
         {
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
+            {
+                var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
+                ViewBag.Alcaldias = alcaldias.Select(a => new { Id = a.Id, Text = $"{a.Nit} - {a.NombreMunicipio}" });
+                return View("Form", model);
+            }
+
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _metasODSService.CreateMetaODSAsync(model);
             TempData["Success"] = "Meta ODS creada exitosamente";
             return RedirectToAction(nameof(Index));

@@ -53,7 +53,11 @@ public class ProgramasController : BaseController
         var ods = await _odsService.GetAllODSAsync(incluirInactivos: false);
         ViewBag.ODS = ods.Select(o => new { Id = o.Id, Text = $"{o.Codigo} - {o.Nombre}" });
 
-        return View("Form", new ProgramaViewModel());
+        var model = new ProgramaViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -76,14 +80,21 @@ public class ProgramasController : BaseController
 
         try
         {
-            // Asignar alcaldía automáticamente desde la primera alcaldía activa
-            var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
-            var primeraAlcaldia = alcaldias.FirstOrDefault();
-            if (primeraAlcaldia != null)
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
             {
-                model.AlcaldiaId = primeraAlcaldia.Id;
+                var sectores = await _sectorService.GetAllSectoresAsync(incluirInactivas: false);
+                ViewBag.Sectores = sectores.Select(s => new { Id = s.Id, Text = $"{s.Codigo} - {s.Nombre}" });
+
+                var ods = await _odsService.GetAllODSAsync(incluirInactivos: false);
+                ViewBag.ODS = ods.Select(o => new { Id = o.Id, Text = $"{o.Codigo} - {o.Nombre}" });
+
+                return View("Form", model);
             }
 
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _programaService.CreateProgramaAsync(model);
             TempData["Success"] = "Programa creado exitosamente";
             return RedirectToAction(nameof(Index));

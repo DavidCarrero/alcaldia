@@ -37,7 +37,12 @@ public class SecretariasController : BaseController
     {
         var alcaldias = await _alcaldiaService.GetAllAlcaldiasAsync(incluirInactivas: false);
         ViewBag.Alcaldias = alcaldias.Select(a => new { Id = a.Id, Text = $"{a.Nit} - {a.NombreMunicipio}" });
-        return View("Form", new SecretariaViewModel());
+        
+        var model = new SecretariaViewModel
+        {
+            AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
+        };
+        return View("Form", model);
     }
 
     [HttpPost]
@@ -51,6 +56,15 @@ public class SecretariasController : BaseController
 
         try
         {
+            // Validar que el usuario tenga una alcaldía asignada
+            if (!ValidarAlcaldiaId())
+            {
+                return View(model);
+            }
+
+            // Asignar alcaldía del usuario logueado
+            model.AlcaldiaId = ObtenerAlcaldiaId();
+            
             await _secretariaService.CreateSecretariaAsync(model);
             TempData["Success"] = "Secretaría creada exitosamente";
             return RedirectToAction(nameof(Index));

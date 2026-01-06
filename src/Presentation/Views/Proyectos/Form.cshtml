@@ -1,0 +1,246 @@
+@model Proyecto_alcaldia.Application.ViewModels.ProyectoViewModel
+
+@{
+    var isEdit = Model?.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+    ViewData["Title"] = isEdit ? "Editar Proyecto" : "Nuevo Proyecto";
+    Layout = "_LayoutDashboard";
+}
+
+<main class="container-fluid">
+    @await Html.PartialAsync("_Breadcrumb", new List<(string, string?)> {
+        ("Ejecución", null),
+        ("Proyectos", Url.Action("Index", "Proyectos")),
+        (isEdit ? "Editar Proyecto" : "Nuevo Proyecto", null)
+    })
+
+    <section class="row justify-content-center">
+        <div class="col-lg-10">
+            <article class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-project-diagram me-2"></i>@(isEdit ? "Editar" : "Nuevo") Proyecto
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Errores de Validación</h5>
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    
+                    <form asp-action="@action" asp-controller="Proyectos" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        @if (isEdit)
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                        }
+                        
+                        <div class="row g-3">
+                            <!-- Responsable -->
+                            @{
+                                ViewData["fieldName"] = "ResponsableId";
+                                ViewData["label"] = "Responsable";
+                                ViewData["options"] = ViewBag.Responsables;
+                                ViewData["selectedValue"] = Model?.ResponsableId?.ToString();
+                                ViewData["placeholder"] = "Seleccione un responsable (opcional)";
+                                ViewData["required"] = "False";
+                                ViewData["icon"] = "fa-user-tie";
+                            }
+                            @await Html.PartialAsync("_SimpleDropdown")
+
+                            <!-- Código -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-barcode me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Codigo)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Codigo, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Ingrese el código",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Codigo, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Código BPIN -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-hashtag me-2"></i>
+                                    @Html.DisplayNameFor(model => model.CodigoBPIN)
+                                </label>
+                                @Html.TextBoxFor(model => model.CodigoBPIN, new { 
+                                    @class = "form-control",
+                                    type = "number",
+                                    step = "1",
+                                    placeholder = "Código BPIN",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.CodigoBPIN, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Porcentaje de Avance -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-percent me-2"></i>
+                                    @Html.DisplayNameFor(model => model.PorcentajeAvance)
+                                </label>
+                                @Html.TextBoxFor(model => model.PorcentajeAvance, new { 
+                                    @class = "form-control",
+                                    type = "number",
+                                    step = "0.01",
+                                    min = "0",
+                                    max = "100",
+                                    placeholder = "0.00",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.PorcentajeAvance, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Nombre -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-heading me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Nombre)
+                                    <span class="text-danger">*</span>
+                                </label>
+                                @Html.TextBoxFor(model => model.Nombre, new { 
+                                    @class = "form-control", 
+                                    placeholder = "Nombre del proyecto",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Valor Proyecto -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-money-bill-wave me-2"></i>
+                                    @Html.DisplayNameFor(model => model.ValorProyecto)
+                                </label>
+                                @Html.TextBoxFor(model => model.ValorProyecto, new { 
+                                    @class = "form-control",
+                                    type = "number",
+                                    step = "0.01",
+                                    placeholder = "0.00",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.ValorProyecto, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Presupuesto Asignado -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-dollar-sign me-2"></i>
+                                    @Html.DisplayNameFor(model => model.PresupuestoAsignado)
+                                </label>
+                                @Html.TextBoxFor(model => model.PresupuestoAsignado, new { 
+                                    @class = "form-control",
+                                    type = "number",
+                                    step = "0.01",
+                                    placeholder = "0.00",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.PresupuestoAsignado, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Presupuesto Ejecutado -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-hand-holding-usd me-2"></i>
+                                    @Html.DisplayNameFor(model => model.PresupuestoEjecutado)
+                                </label>
+                                @Html.TextBoxFor(model => model.PresupuestoEjecutado, new { 
+                                    @class = "form-control",
+                                    type = "number",
+                                    step = "0.01",
+                                    placeholder = "0.00",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.PresupuestoEjecutado, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Fecha Inicio -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    @Html.DisplayNameFor(model => model.FechaInicio)
+                                </label>
+                                @Html.TextBoxFor(model => model.FechaInicio, "{0:yyyy-MM-dd}", new { 
+                                    @class = "form-control",
+                                    type = "date",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.FechaInicio, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Fecha Fin -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-check me-2"></i>
+                                    @Html.DisplayNameFor(model => model.FechaFin)
+                                </label>
+                                @Html.TextBoxFor(model => model.FechaFin, "{0:yyyy-MM-dd}", new { 
+                                    @class = "form-control",
+                                    type = "date",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.FechaFin, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+
+                            <!-- Estado Proyecto -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="EstadoProyecto" name="EstadoProyecto" value="true" @(Model?.EstadoProyecto == true ? "checked" : "") />
+                                    <input type="hidden" name="EstadoProyecto" value="false" />
+                                    <label class="form-check-label" for="EstadoProyecto">
+                                        @Html.DisplayNameFor(model => model.EstadoProyecto)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                @Html.TextAreaFor(model => model.Descripcion, new { 
+                                    @class = "form-control", 
+                                    rows = "4",
+                                    placeholder = "Descripción del proyecto",
+                                    autocomplete = "off"
+                                })
+                                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger small mt-1 d-block" })
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>@(isEdit ? "Guardar Cambios" : "Crear Proyecto")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
