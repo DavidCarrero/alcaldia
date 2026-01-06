@@ -85,30 +85,32 @@
         </div>
     </section>
 
+    <!-- Barra de Búsqueda -->
+    <section class="card border-0 shadow-sm mb-4" aria-label="Búsqueda de subsecretarías">
+        <div class="card-body">
+            <form asp-action="Index" method="get" id="searchForm">
+                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchTerm" 
+                           class="form-control border-start-0" 
+                           placeholder="Buscar por nombre o código..."
+                           value="@ViewData["SearchTerm"]"
+                           onkeypress="if(event.key === 'Enter') { this.form.submit(); return false; }">
+                </div>
+            </form>
+        </div>
+    </section>
+
     <!-- Tabla de Subsecretarías -->
     <section class="card border-0 shadow-sm" aria-label="Listado de subsecretarías">
         <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Lista de Subsecretarías</h5>
-                </div>
-            </div>
+            <h5 class="mb-0 fw-bold">Listado de Subsecretarías</h5>
         </div>
         <div class="card-body">
-            <form asp-action="Index" method="get" id="searchForm" class="mb-3">
-                <input type="hidden" name="pageSize" value="@(ViewBag.PageSize ?? 5)" />
-                <div class="input-group">
-                    <input type="text" 
-                           name="searchTerm" 
-                           class="form-control" 
-                           placeholder="Buscar por nombre o código..."
-                           value="@ViewData["SearchTerm"]">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i>Buscar
-                    </button>
-                </div>
-            </form>
-            
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
