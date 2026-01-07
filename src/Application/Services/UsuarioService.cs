@@ -64,18 +64,15 @@ public class UsuarioService : IUsuarioService
             UsuariosRoles = new List<UsuarioRol>()
         };
 
-        // Asignar roles
-        if (model.RolesIds != null && model.RolesIds.Any())
+        // Asignar rol único
+        if (model.RolId > 0)
         {
-            foreach (var rolId in model.RolesIds)
+            usuario.UsuariosRoles.Add(new UsuarioRol
             {
-                usuario.UsuariosRoles.Add(new UsuarioRol
-                {
-                    RolId = rolId,
-                    FechaAsignacion = DateTime.UtcNow,
-                    Activo = true
-                });
-            }
+                RolId = model.RolId,
+                FechaAsignacion = DateTime.UtcNow,
+                Activo = true
+            });
         }
 
         await _usuarioRepository.CreateAsync(usuario);
@@ -117,20 +114,17 @@ public class UsuarioService : IUsuarioService
             usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(model.Contrasena);
         }
 
-        // Actualizar roles - eliminar todos los anteriores y agregar los nuevos
+        // Actualizar rol - eliminar el anterior y agregar el nuevo
         usuario.UsuariosRoles.Clear();
-        if (model.RolesIds != null && model.RolesIds.Any())
+        if (model.RolId > 0)
         {
-            foreach (var rolId in model.RolesIds)
+            usuario.UsuariosRoles.Add(new UsuarioRol
             {
-                usuario.UsuariosRoles.Add(new UsuarioRol
-                {
-                    UsuarioId = id,
-                    RolId = rolId,
-                    FechaAsignacion = DateTime.UtcNow,
-                    Activo = true
-                });
-            }
+                UsuarioId = id,
+                RolId = model.RolId,
+                FechaAsignacion = DateTime.UtcNow,
+                Activo = true
+            });
         }
 
         await _usuarioRepository.UpdateAsync(usuario);
@@ -292,14 +286,10 @@ public class UsuarioService : IUsuarioService
             AlcaldiaId = usuario.AlcaldiaId,
             Activo = usuario.Activo,
             UltimoAcceso = usuario.UltimoAcceso,
-            RolesSeleccionados = usuario.UsuariosRoles
+            RolId = usuario.UsuariosRoles
                 .Where(ur => ur.Activo)
                 .Select(ur => ur.RolId)
-                .ToList(),
-            RolesIds = usuario.UsuariosRoles
-                .Where(ur => ur.Activo)
-                .Select(ur => ur.RolId)
-                .ToList()
+                .FirstOrDefault()
         };
     }
 }

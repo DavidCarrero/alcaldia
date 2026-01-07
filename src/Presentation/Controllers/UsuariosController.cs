@@ -89,7 +89,8 @@ public class UsuariosController : BaseController
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        ViewBag.Roles = await _rolService.GetAllRolesAsync();
+        var roles = await _rolService.GetAllRolesAsync();
+        ViewBag.Roles = roles.Select(r => new { Id = r.Id, Text = r.Nombre });
         var model = new CrearUsuarioViewModel
         {
             AlcaldiaId = AlcaldiaIdUsuarioActual ?? 0
@@ -103,7 +104,8 @@ public class UsuariosController : BaseController
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Roles = await _rolService.GetAllRolesAsync();
+            var roles = await _rolService.GetAllRolesAsync();
+            ViewBag.Roles = roles.Select(r => new { Id = r.Id, Text = r.Nombre });
             return View("Form", model);
         }
 
@@ -112,7 +114,8 @@ public class UsuariosController : BaseController
             // Validar que el usuario tenga una alcaldía asignada
             if (!ValidarAlcaldiaId())
             {
-                ViewBag.Roles = await _rolService.GetAllRolesAsync();
+                var roles = await _rolService.GetAllRolesAsync();
+                ViewBag.Roles = roles.Select(r => new { Id = r.Id, Text = r.Nombre });
                 return View("Form", model);
             }
 
@@ -128,7 +131,8 @@ public class UsuariosController : BaseController
             _logger.LogError(ex, "Error al crear usuario");
             var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
             ModelState.AddModelError("", mensajeError);
-            ViewBag.Roles = await _rolService.GetAllRolesAsync();
+            var roles = await _rolService.GetAllRolesAsync();
+            ViewBag.Roles = roles.Select(r => new { Id = r.Id, Text = r.Nombre });
             return View("Form", model);
         }
     }
@@ -149,11 +153,12 @@ public class UsuariosController : BaseController
             CorreoElectronico = usuario.CorreoElectronico,
             NombreUsuario = usuario.NombreUsuario,
             Activo = usuario.Activo,
-            RolesSeleccionados = usuario.RolesSeleccionados,
+            RolId = usuario.RolId,
             UltimoAcceso = usuario.UltimoAcceso
         };
 
-        ViewBag.Roles = await _rolService.GetAllRolesAsync();
+        var roles = await _rolService.GetAllRolesAsync();
+        ViewBag.Roles = roles.Select(r => new { Id = r.Id, Text = r.Nombre });
         return View("Form", model);
     }
 
@@ -169,7 +174,8 @@ public class UsuariosController : BaseController
 
         if (!ModelState.IsValid)
         {
-            ViewBag.Roles = await _rolService.GetAllRolesAsync();
+            var roles = await _rolService.GetAllRolesAsync();
+            ViewBag.Roles = roles.Select(r => new { Id = r.Id, Text = r.Nombre });
             return View("Form", model);
         }
 
@@ -184,7 +190,8 @@ public class UsuariosController : BaseController
             _logger.LogError(ex, "Error al actualizar usuario");
             var mensajeError = ObtenerMensajeErrorBaseDatos(ex);
             ModelState.AddModelError("", mensajeError);
-            ViewBag.Roles = await _rolService.GetAllRolesAsync();
+            var roles = await _rolService.GetAllRolesAsync();
+            ViewBag.Roles = roles.Select(r => new { Id = r.Id, Text = r.Nombre });
             return View("Form", model);
         }
     }

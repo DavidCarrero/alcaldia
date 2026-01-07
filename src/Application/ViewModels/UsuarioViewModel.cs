@@ -24,11 +24,9 @@ public class UsuarioViewModel
     [Display(Name = "Alcaldía")]
     public int? AlcaldiaId { get; set; }
 
-    [Display(Name = "Roles Asignados")]
-    public List<int> RolesSeleccionados { get; set; } = new List<int>();
-
-    [Display(Name = "Roles")]
-    public List<int> RolesIds { get; set; } = new List<int>();
+    [Required(ErrorMessage = "Debe seleccionar un rol")]
+    [Display(Name = "Rol")]
+    public int RolId { get; set; }
 
     [Display(Name = "Activo")]
     public bool Activo { get; set; } = true;

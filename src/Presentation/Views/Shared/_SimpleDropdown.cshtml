@@ -53,7 +53,10 @@
         get filteredOptions() {
             if (!this.searchTerm) return this.options;
             const term = this.searchTerm.toLowerCase();
-            return this.options.filter(opt => opt.text.toLowerCase().includes(term));
+            return this.options.filter(opt => 
+                opt.text.toLowerCase().includes(term) || 
+                opt.id.toString().toLowerCase().includes(term)
+            );
         },
         
         selectOption(option) {
